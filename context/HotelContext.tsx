@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Hotel } from '../types';
 import { HOTELS } from '../constants';
 
@@ -12,9 +12,21 @@ interface HotelContextType {
 
 const HotelContext = createContext<HotelContextType | undefined>(undefined);
 
-// FIX: Explicitly typed as React.FC to ensure TS recognizes the 'children' prop when used in JSX tree
 export const HotelProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [hotels, setHotels] = useState<Hotel[]>(HOTELS);
+    const [hotels, setHotels] = useState<Hotel[]>(() => {
+        try {
+            const savedHotels = localStorage.getItem('hotels');
+            return savedHotels ? JSON.parse(savedHotels) : HOTELS;
+        } catch (error) {
+            console.error("Failed to parse hotels from localStorage", error);
+            return HOTELS;
+        }
+    });
+
+    useEffect(() => {
+        localStorage.setItem('hotels', JSON.stringify(hotels));
+    }, [hotels]);
+
 
     const addHotel = (hotel: Omit<Hotel, 'id'>) => {
         setHotels(prevHotels => [

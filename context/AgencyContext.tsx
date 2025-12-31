@@ -14,11 +14,15 @@ interface AgencyContextType {
 
 const AgencyContext = createContext<AgencyContextType | undefined>(undefined);
 
-// FIX: Explicitly typed as React.FC to ensure TS recognizes the 'children' prop when used in JSX tree
 export const AgencyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [agencies, setAgencies] = useState<Agent[]>(() => {
-        const savedAgencies = localStorage.getItem('agencies');
-        return savedAgencies ? JSON.parse(savedAgencies) : AGENTS;
+        try {
+            const savedAgencies = localStorage.getItem('agencies');
+            return savedAgencies ? JSON.parse(savedAgencies) : AGENTS;
+        } catch (error) {
+            console.error("Failed to parse agencies from localStorage", error);
+            return AGENTS;
+        }
     });
     
     const { addInvoice } = useInvoice();

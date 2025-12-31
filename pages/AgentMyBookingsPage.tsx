@@ -6,19 +6,38 @@ import { useBooking } from '../context/BookingContext';
 import { Booking } from '../types';
 import { useCurrency } from '../context/CurrencyContext';
 import { useToast } from '../context/ToastContext';
+import { useAgent } from '../context/AgentContext';
 
+const RefreshIcon: React.FC<{ isRefreshing: boolean }> = ({ isRefreshing }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 mr-2 transition-transform duration-300 ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-4.991-2.693L19.015 7.74M4.036 7.74l3.182 3.182" />
+    </svg>
+);
 
 const AgentMyBookingsPage: React.FC = () => {
-  const { bookings, deleteBookings } = useBooking();
+  const { bookings, deleteBookings, refreshData } = useBooking();
   const { convertPrice } = useCurrency();
+  const { agent } = useAgent();
   const { addToast } = useToast();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // In a real app, you would filter by the logged-in agent's ID.
   const agentBookings = useMemo(() => {
-    return bookings.filter(b => b.agentDetails);
-  }, [bookings]);
+    return bookings.filter(b => b.agentDetails?.agencyId === agent?.id);
+  }, [bookings, agent]);
   
   const [selectedBookings, setSelectedBookings] = useState<string[]>([]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+        await refreshData();
+        addToast('Data refreshed successfully.', 'success');
+    } catch {
+        addToast('Failed to refresh data.', 'error');
+    } finally {
+        setIsRefreshing(false);
+    }
+  };
   
   const handleSelectBooking = (bookingId: string) => {
     setSelectedBookings(prev => prev.includes(bookingId) ? prev.filter(id => id !== bookingId) : [...prev, bookingId]);
@@ -45,6 +64,7 @@ const AgentMyBookingsPage: React.FC = () => {
         case 'Confirmed': return 'bg-green-100 text-green-800';
         case 'Pending': return 'bg-yellow-100 text-yellow-800';
         case 'Cancelled': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
     }
   }
 
@@ -52,11 +72,17 @@ const AgentMyBookingsPage: React.FC = () => {
     <DashboardLayout portal="agent">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <h1 className="text-3xl font-bold text-primary">My Agency's Bookings</h1>
-        {selectedBookings.length > 0 && (
-            <button onClick={handleDeleteSelected} className="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition duration-300">
-                Delete Selected ({selectedBookings.length})
+         <div className="flex items-center gap-4">
+            {selectedBookings.length > 0 && (
+                <button onClick={handleDeleteSelected} className="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition duration-300">
+                    Delete Selected ({selectedBookings.length})
+                </button>
+            )}
+            <button onClick={handleRefresh} disabled={isRefreshing} className="group flex items-center bg-white text-primary font-semibold py-2 px-4 border border-primary-200 rounded-lg hover:bg-primary-50 transition duration-300 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                <RefreshIcon isRefreshing={isRefreshing} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh'}
             </button>
-        )}
+        </div>
       </div>
        <div className="bg-white p-6 rounded-lg shadow-md mt-8">
          <div className="overflow-x-auto">

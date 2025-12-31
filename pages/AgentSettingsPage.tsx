@@ -1,15 +1,23 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { useAgent } from '../context/AgentContext';
 import { useToast } from '../context/ToastContext';
+import { AgentProfile } from '../types';
 
 const AgentSettingsPage: React.FC = () => {
-    // FIX: Destructure 'agent' instead of 'agentProfile'. 'agentProfile' does not exist on the context.
     const { agent, setAgentProfile } = useAgent();
     const { addToast } = useToast();
-    // FIX: Initialize state from 'agent.profile'. The non-null assertion is safe because a logged-in agent is assumed for this page.
-    const [formData, setFormData] = useState(agent!.profile);
+    
+    const [formData, setFormData] = useState<AgentProfile>(agent?.profile || {
+        agencyName: '', agencyId: '', iataCode: '', contactEmail: '', contactNumber: ''
+    });
+
+    useEffect(() => {
+        if (agent?.profile) {
+            setFormData(agent.profile);
+        }
+    }, [agent]);
 
     const inputStyle = "mt-1 block w-full p-2.5 bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-primary focus:border-primary transition duration-300";
 

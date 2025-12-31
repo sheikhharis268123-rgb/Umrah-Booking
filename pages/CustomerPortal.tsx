@@ -11,6 +11,7 @@ import InfoBanner from '../components/InfoBanner';
 import DateScroller from '../components/DateScroller';
 import HotelCardSkeleton from '../components/HotelCardSkeleton';
 import ManageBookingModal from '../components/ManageBookingModal';
+import { useSettings } from '../context/SettingsContext';
 
 export interface SearchCriteria {
     city: 'Makkah' | 'Madina';
@@ -27,6 +28,7 @@ export interface Filters {
 
 const CustomerPortal: React.FC = () => {
     const { hotels } = useHotels();
+    const { bannerImageUrl } = useSettings();
     const [isManageModalOpen, setManageModalOpen] = useState(false);
     
     const today = new Date();
@@ -156,7 +158,7 @@ const CustomerPortal: React.FC = () => {
             <InfoBanner />
             <main>
                 {searchedHotels === null && (
-                    <div className="relative h-[550px] bg-cover bg-center" style={{ backgroundImage: "url('https://picsum.photos/seed/kaaba/1920/1080')" }}>
+                    <div className="relative h-[550px] bg-cover bg-center" style={{ backgroundImage: `url('${bannerImageUrl}')` }}>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 flex items-center">
                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-white">
                                 <div className="max-w-2xl">

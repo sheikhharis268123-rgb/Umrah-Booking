@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useBooking } from '../context/BookingContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useSettings } from '../context/SettingsContext';
 import { Currency } from '../types';
 import DashboardLayout from '../components/DashboardLayout';
 
@@ -21,6 +22,7 @@ const ArrowIcon: React.FC<{className?: string}> = ({className}) => (
 const AdminVoucherPage: React.FC = () => {
     const { bookingId } = useParams<{ bookingId: string }>();
     const { bookings } = useBooking();
+    const { websiteName } = useSettings();
     const { currency, setCurrency, convertPrice } = useCurrency();
     const voucherRef = useRef<HTMLDivElement>(null);
 
@@ -108,7 +110,7 @@ const AdminVoucherPage: React.FC = () => {
                                     <div>
                                         <div className="flex items-center space-x-3">
                                             <ArrowIcon />
-                                            <h1 className="text-3xl font-bold text-primary">Umrah Hotels</h1>
+                                            <h1 className="text-3xl font-bold text-primary">{websiteName}</h1>
                                         </div>
                                         <h2 className="text-2xl font-bold text-gray-800 mt-2">Booking Voucher</h2>
                                     </div>

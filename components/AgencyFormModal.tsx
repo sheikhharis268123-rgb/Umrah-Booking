@@ -14,9 +14,10 @@ const AgencyFormModal: React.FC<AgencyFormModalProps> = ({ isOpen, onClose, agen
     const { addAgency, updateAgency } = useAgency();
     const { addToast } = useToast();
     const [formData, setFormData] = useState<AgentProfile>(
-        agentToEdit?.profile || {
+        agentToEdit?.profile ? { ...agentToEdit.profile, password: '' } : {
             agencyId: '',
             agencyName: '',
+            password: '',
             iataCode: '',
             contactEmail: '',
             contactNumber: ''
@@ -33,11 +34,16 @@ const AgencyFormModal: React.FC<AgencyFormModalProps> = ({ isOpen, onClose, agen
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (agentToEdit) {
-            updateAgency({ ...agentToEdit, profile: formData });
+            const updatedProfile = { ...formData };
+            if (!formData.password) {
+                // If password field is empty during an edit, retain the old password
+                updatedProfile.password = agentToEdit.profile.password;
+            }
+            updateAgency({ ...agentToEdit, profile: updatedProfile });
             addToast('Agency profile updated successfully!', 'success');
         } else {
-            if(!formData.agencyId) {
-                addToast('Agency ID is required.', 'error');
+            if(!formData.agencyId || !formData.password) {
+                addToast('Agency ID and Password are required for new agencies.', 'error');
                 return;
             }
             addAgency(formData);
@@ -62,9 +68,13 @@ const AgencyFormModal: React.FC<AgencyFormModalProps> = ({ isOpen, onClose, agen
                                 <input type="text" name="agencyName" value={formData.agencyName} onChange={handleChange} className={inputStyle} required />
                             </div>
                              <div>
-                                <label htmlFor="agencyId" className="block text-sm font-medium text-gray-700">Agency ID</label>
+                                <label htmlFor="agencyId" className="block text-sm font-medium text-gray-700">Agency ID (Login)</label>
                                 <input type="text" name="agencyId" value={formData.agencyId} onChange={handleChange} className={inputStyle} required disabled={!!agentToEdit} />
                             </div>
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                            <input type="password" name="password" value={formData.password} onChange={handleChange} className={inputStyle} placeholder={agentToEdit ? "Leave blank to keep current password" : ""} required={!agentToEdit} />
                         </div>
                         <div>
                             <label htmlFor="iataCode" className="block text-sm font-medium text-gray-700">IATA Code</label>

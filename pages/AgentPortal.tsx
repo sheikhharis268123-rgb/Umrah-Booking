@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
-import { BOOKINGS } from '../constants';
+import { useBooking } from '../context/BookingContext';
 import InfoBanner from '../components/InfoBanner';
 import { useAgent } from '../context/AgentContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useToast } from '../context/ToastContext';
 
 const StatCard: React.FC<{ title: string; value: string | React.ReactNode; icon: React.ReactNode; linkTo?: string }> = ({ title, value, icon, linkTo }) => {
     const content = (
@@ -41,26 +42,52 @@ const WalletIcon = () => (
     </svg>
 );
 
-
-const RefreshIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 group-hover:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+const RefreshIcon: React.FC<{ isRefreshing: boolean }> = ({ isRefreshing }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 mr-2 transition-transform duration-300 ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-4.991-2.693L19.015 7.74M4.036 7.74l3.182 3.182" />
     </svg>
 );
 
+
 const AgentPortal: React.FC = () => {
   const { agent } = useAgent();
+  const { bookings, refreshData } = useBooking();
+  const { addToast } = useToast();
   const { convertPrice } = useCurrency();
-  const agentBookings = BOOKINGS.filter(b => b.guestName.includes('Agent') || b.agentDetails?.agencyId === agent?.id);
+  const agentBookings = bookings.filter(b => b.agentDetails?.agencyId === agent?.id);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+        await refreshData();
+        addToast('Data refreshed successfully.', 'success');
+    } catch {
+        addToast('Failed to refresh data.', 'error');
+    } finally {
+        setIsRefreshing(false);
+    }
+  };
+  
+  if (agent && agent.status === 'Inactive') {
+        return (
+            <DashboardLayout portal="agent">
+                <div className="bg-white p-8 rounded-lg shadow-md text-center">
+                    <h1 className="text-2xl font-bold text-red-600">Account Inactive</h1>
+                    <p className="text-gray-600 mt-2">Your agency account is currently inactive. Please contact administration for assistance.</p>
+                </div>
+            </DashboardLayout>
+        );
+    }
+    
   return (
     <DashboardLayout portal="agent">
       <InfoBanner />
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-primary">Agent Dashboard</h1>
-        <button onClick={() => window.location.reload()} className="group flex items-center bg-white text-primary font-semibold py-2 px-4 border border-primary-200 rounded-lg hover:bg-primary-50 transition duration-300 shadow-sm">
-            <RefreshIcon />
-            Refresh Data
+        <button onClick={handleRefresh} disabled={isRefreshing} className="group flex items-center bg-white text-primary font-semibold py-2 px-4 border border-primary-200 rounded-lg hover:bg-primary-50 transition duration-300 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+            <RefreshIcon isRefreshing={isRefreshing} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
         </button>
       </div>
 

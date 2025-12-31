@@ -11,11 +11,15 @@ interface BulkOrderContextType {
 
 const BulkOrderContext = createContext<BulkOrderContextType | undefined>(undefined);
 
-// FIX: Explicitly typed as React.FC to ensure TS recognizes the 'children' prop when used in JSX tree
 export const BulkOrderProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [bulkOrders, setBulkOrders] = useState<BulkOrder[]>(() => {
-        const savedOrders = localStorage.getItem('bulkOrders');
-        return savedOrders ? JSON.parse(savedOrders) : [];
+        try {
+            const savedOrders = localStorage.getItem('bulkOrders');
+            return savedOrders ? JSON.parse(savedOrders) : [];
+        } catch (error) {
+            console.error("Failed to parse bulk orders from localStorage", error);
+            return [];
+        }
     });
 
     useEffect(() => {
@@ -26,7 +30,7 @@ export const BulkOrderProvider: React.FC<{ children: ReactNode }> = ({ children 
         const newOrder: BulkOrder = {
             ...orderData,
             id: `BO-${Date.now()}`,
-            status: 'Pending', // New orders now require admin approval
+            status: 'Pending',
             createdAt: new Date().toISOString(),
         };
         setBulkOrders(prev => [newOrder, ...prev]);

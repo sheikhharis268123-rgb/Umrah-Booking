@@ -10,12 +10,16 @@ const AdminSettingsPage: React.FC = () => {
     const { 
         logoUrl, updateLogo, promoCodes, addPromoCode, deletePromoCode,
         cancellationFeePercentage, updateCancellationFee,
-        dateChangeFeePercentage, updateDateChangeFee
+        dateChangeFeePercentage, updateDateChangeFee,
+        websiteName, updateWebsiteName,
+        bannerImageUrl, updateBannerImageUrl
     } = useSettings();
     const { announcement, setAnnouncement } = useInfo();
     const { addToast } = useToast();
 
     const [currentAnnouncement, setCurrentAnnouncement] = useState(announcement);
+    const [currentWebsiteName, setCurrentWebsiteName] = useState(websiteName);
+    const [currentBannerUrl, setCurrentBannerUrl] = useState(bannerImageUrl);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [newPromoCode, setNewPromoCode] = useState<Omit<PromoCode, ''>>({ code: '', discount: 0, type: 'percentage' });
     
@@ -52,9 +56,11 @@ const AdminSettingsPage: React.FC = () => {
         }
     };
 
-    const handleSaveAnnouncement = () => {
+    const handleSaveGeneralSettings = () => {
+        updateWebsiteName(currentWebsiteName);
+        updateBannerImageUrl(currentBannerUrl);
         setAnnouncement(currentAnnouncement);
-        addToast('Announcement updated successfully!', 'success');
+        addToast('General settings updated successfully!', 'success');
     };
     
     const handleSaveFinancials = () => {
@@ -68,43 +74,50 @@ const AdminSettingsPage: React.FC = () => {
             <h1 className="text-3xl font-bold text-primary mb-8">Settings</h1>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Logo Uploader */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-semibold text-primary mb-4">Website Logo</h2>
-                    <div className="flex items-center space-x-6">
-                        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border">
-                            {logoUrl ? <img src={logoUrl} alt="Current Logo" className="w-full h-full object-contain" /> : <span className="text-gray-500 text-sm">No Logo</span>}
+                {/* General Settings */}
+                <div className="bg-white p-6 rounded-lg shadow-md lg:col-span-2">
+                    <h2 className="text-xl font-semibold text-primary mb-4">General Settings</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label htmlFor="websiteName" className="block text-sm font-medium text-gray-700">Website Name</label>
+                            <input type="text" id="websiteName" value={currentWebsiteName} onChange={(e) => setCurrentWebsiteName(e.target.value)} className={inputStyle} />
                         </div>
                         <div>
-                            <input type="file" accept="image/*" onChange={handleLogoUpload} ref={fileInputRef} className="hidden" />
-                            <button onClick={() => fileInputRef.current?.click()} className="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-800 transition">
-                                Upload New Logo
-                            </button>
-                            <p className="text-xs text-gray-500 mt-2">Recommended size: 200x200px</p>
+                            <label htmlFor="bannerImageUrl" className="block text-sm font-medium text-gray-700">Main Banner Image URL</label>
+                            <input type="text" id="bannerImageUrl" value={currentBannerUrl} onChange={(e) => setCurrentBannerUrl(e.target.value)} className={inputStyle} />
                         </div>
+                        <div className="flex items-center space-x-4">
+                            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border">
+                                {logoUrl ? <img src={logoUrl} alt="Current Logo" className="w-full h-full object-contain" /> : <span className="text-gray-500 text-xs">No Logo</span>}
+                            </div>
+                            <div>
+                                <input type="file" accept="image/*" onChange={handleLogoUpload} ref={fileInputRef} className="hidden" />
+                                <button onClick={() => fileInputRef.current?.click()} className="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-800 transition">
+                                    Upload Logo
+                                </button>
+                                <p className="text-xs text-gray-500 mt-2">Recommended: 200x200px</p>
+                            </div>
+                        </div>
+                        <div className="md:col-span-2">
+                            <label htmlFor="announcement" className="block text-sm font-medium text-gray-700">Website Announcement</label>
+                            <textarea 
+                                id="announcement"
+                                value={currentAnnouncement}
+                                onChange={(e) => setCurrentAnnouncement(e.target.value)}
+                                rows={2}
+                                className={inputStyle}
+                                placeholder="e.g., 'Booking is now open for Ramadan'"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex justify-end mt-4">
+                        <button onClick={handleSaveGeneralSettings} className="bg-secondary text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition">
+                            Save General Settings
+                        </button>
                     </div>
                 </div>
 
-                 {/* Announcement Section */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-semibold text-primary mb-4">Website Announcement</h2>
-                     <div>
-                        <textarea 
-                            value={currentAnnouncement}
-                            onChange={(e) => setCurrentAnnouncement(e.target.value)}
-                            rows={3}
-                            className={inputStyle}
-                            placeholder="Enter a site-wide message... (e.g., 'Booking is now open for Ramadan')"
-                        />
-                        <div className="flex justify-end mt-2">
-                             <button onClick={handleSaveAnnouncement} className="bg-secondary text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition">
-                                Save Announcement
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                 {/* Financial Settings */}
+                {/* Financial Settings */}
                 <div className="bg-white p-6 rounded-lg shadow-md lg:col-span-2">
                     <h2 className="text-xl font-semibold text-primary mb-4">Financial Settings</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

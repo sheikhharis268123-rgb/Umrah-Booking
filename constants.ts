@@ -121,6 +121,7 @@ export const AGENTS: Agent[] = [
         profile: {
             agencyName: 'Al-Huda Travels',
             agencyId: 'AHT-001',
+            password: 'password123',
             iataCode: '22-3 4567-8',
             contactEmail: 'bookings@alhudatravels.com',
             contactNumber: '+966 12 345 6789'
@@ -133,6 +134,7 @@ export const AGENTS: Agent[] = [
         profile: {
             agencyName: 'Noor Tours',
             agencyId: 'NT-002',
+            password: 'password123',
             iataCode: '33-1 9876-5',
             contactEmail: 'contact@noortours.com',
             contactNumber: '+971 4 321 9876'
@@ -145,6 +147,7 @@ export const AGENTS: Agent[] = [
         profile: {
             agencyName: 'Iman Travel Pakistan',
             agencyId: 'ITP-003',
+            password: 'password123',
             iataCode: '11-2 1234-5',
             contactEmail: 'info@imantravel.pk',
             contactNumber: '+92 301 8765432'

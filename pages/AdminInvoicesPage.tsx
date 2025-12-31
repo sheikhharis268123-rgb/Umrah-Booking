@@ -4,6 +4,7 @@ import DashboardLayout from '../components/DashboardLayout';
 import { useInvoice } from '../context/InvoiceContext';
 import { useAgency } from '../context/AgencyContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useSettings } from '../context/SettingsContext';
 import { Invoice } from '../types';
 import InvoiceReportModal from '../components/InvoiceReportModal';
 
@@ -12,6 +13,7 @@ declare const jspdf: any;
 const AdminInvoicesPage: React.FC = () => {
     const { invoices } = useInvoice();
     const { agencies } = useAgency();
+    const { websiteName } = useSettings();
     const { convertPrice } = useCurrency();
 
     const [filterAgencyId, setFilterAgencyId] = useState<string>('');
@@ -26,34 +28,68 @@ const AdminInvoicesPage: React.FC = () => {
     const handleDownloadInvoice = (invoice: Invoice) => {
         const { jsPDF } = jspdf;
         const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const agency = agencies.find(a => a.id === invoice.agentId);
 
+        // Header
         doc.setFontSize(22);
-        doc.text("Transaction Invoice", 105, 20, { align: 'center' });
-
-        doc.setFontSize(12);
-        doc.text(`Invoice ID: ${invoice.id}`, 14, 40);
-        doc.text(`Date: ${new Date(invoice.createdAt).toLocaleString()}`, 14, 47);
-
-        doc.line(14, 55, 196, 55);
-
-        doc.text(`Agency: ${invoice.agentName} (ID: ${invoice.agentId})`, 14, 65);
-        doc.text(`Description: ${invoice.description}`, 14, 72);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 109, 119); // Primary color
+        doc.text(websiteName, pageWidth / 2, 20, { align: 'center' });
         
-        doc.setFontSize(16);
-        doc.text(`Type: ${invoice.type}`, 14, 90);
-        doc.text(`Amount: ${convertPrice(invoice.amount)}`, 196, 90, { align: 'right' });
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(52, 58, 64); // Dark neutral
+        doc.text("Transaction Invoice", pageWidth / 2, 28, { align: 'center' });
 
-        doc.line(14, 100, 196, 100);
+        // Invoice Details
+        doc.setFontSize(10);
+        doc.text(`Invoice ID: ${invoice.id}`, 14, 45);
+        doc.text(`Date: ${new Date(invoice.createdAt).toLocaleString()}`, 14, 50);
+
+        // Agency Details
+        if (agency) {
+            const agencyDetails = `Billed to:\n${agency.profile.agencyName}\nID: ${agency.id}\n${agency.profile.contactEmail}`;
+            doc.text(agencyDetails, pageWidth - 14, 45, { align: 'right' });
+        }
+        
+        doc.setLineWidth(0.5);
+        doc.line(14, 60, pageWidth - 14, 60);
+
+        // Body with autoTable
+        doc.autoTable({
+            startY: 70,
+            head: [['Description', 'Type', 'Amount']],
+            body: [[invoice.description, invoice.type, convertPrice(invoice.amount)]],
+            theme: 'grid',
+            headStyles: { fillColor: [0, 109, 119] },
+            didDrawPage: (data: any) => {
+                // Footer
+                const pageCount = doc.internal.getNumberOfPages();
+                doc.setFontSize(10);
+                doc.setTextColor(150);
+                doc.text('Thank you for your business!', 14, doc.internal.pageSize.getHeight() - 10);
+                doc.text(`Page ${data.pageNumber} of ${pageCount}`, pageWidth - 14, doc.internal.pageSize.getHeight() - 10, { align: 'right' });
+            }
+        });
         
         doc.save(`invoice-${invoice.id}.pdf`);
     };
 
     return (
         <DashboardLayout portal="admin">
-            <h1 className="text-3xl font-bold text-primary mb-8">Invoices & Transactions</h1>
+            <div className="flex justify-between items-center mb-4">
+                <h1 className="text-3xl font-bold text-primary">Invoices & Transactions</h1>
+                <button onClick={() => window.location.reload()} className="group flex items-center bg-white text-primary font-semibold py-2 px-4 border border-primary-200 rounded-lg hover:bg-primary-50 transition duration-300 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 group-hover:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-4.991-2.693L19.015 7.74M4.036 7.74l3.182 3.182" />
+                    </svg>
+                    Refresh Data
+                </button>
+            </div>
 
-            <div className="bg-white p-4 rounded-lg shadow-md mb-8 flex justify-between items-center">
-                <div className="max-w-xs">
+            <div className="bg-white p-4 rounded-lg shadow-md mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="w-full sm:max-w-xs">
                     <label htmlFor="agency-filter" className="text-sm font-semibold text-gray-600">Filter by Agency</label>
                     <select
                         id="agency-filter"
@@ -67,7 +103,7 @@ const AdminInvoicesPage: React.FC = () => {
                         ))}
                     </select>
                 </div>
-                 <button onClick={() => setReportModalOpen(true)} className="bg-secondary text-white font-bold py-2 px-6 rounded-lg hover:bg-opacity-90 transition duration-300 shadow">
+                 <button onClick={() => setReportModalOpen(true)} className="bg-secondary text-white font-bold py-2.5 px-6 rounded-lg hover:bg-opacity-90 transition duration-300 shadow w-full sm:w-auto">
                     Download Report
                 </button>
             </div>

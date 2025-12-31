@@ -2,30 +2,21 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Agent, AgentProfile } from '../types';
 import { useAgency } from './AgencyContext';
+import { useAuth } from './AuthContext';
 
 interface AgentContextType {
     agent: Agent | null;
     setAgentProfile: (profile: AgentProfile) => void;
 }
 
-const defaultProfile: AgentProfile = {
-    agencyName: 'Al-Huda Travels',
-    agencyId: 'AHT-001',
-    iataCode: '22-3 4567-8',
-    contactEmail: 'bookings@alhudatravels.com',
-    contactNumber: '+966 12 345 6789'
-};
-
 const AgentContext = createContext<AgentContextType | undefined>(undefined);
 
-// FIX: Explicitly typed as React.FC to ensure TS recognizes the 'children' prop when used in JSX tree
 export const AgentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // This represents the currently "logged in" agent.
-    // In a real app, this ID would come from an authentication system.
-    const [currentAgentId] = useState('AHT-001'); 
+    // This now represents the currently "logged in" agent, derived from AuthContext.
+    const { user } = useAuth();
     const { agencies, updateAgency } = useAgency();
 
-    const agent = agencies.find(a => a.id === currentAgentId) || null;
+    const agent = user && user.role === 'agent' ? agencies.find(a => a.id === user.id) || null : null;
     
     const setAgentProfile = (profile: AgentProfile) => {
         if (agent) {

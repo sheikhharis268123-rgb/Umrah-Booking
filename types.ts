@@ -27,6 +27,7 @@ export interface Hotel {
 export interface AgentProfile {
     agencyName: string;
     agencyId: string;
+    password?: string; // Added for login
     iataCode: string;
     contactEmail: string;
     contactNumber: string;
@@ -67,6 +68,7 @@ export interface Booking {
     bookingType?: 'customer' | 'agent-assigned';
     requestedCheckInDate?: string;
     requestedCheckOutDate?: string;
+    customerId?: string; // Link to customer account
 }
 
 export interface BulkOrderItem {
@@ -102,3 +104,19 @@ export interface PromoCode {
 }
 
 export type Currency = 'USD' | 'SAR' | 'PKR';
+
+// New Types for Customer Auth and Notifications
+export interface Customer {
+    id: string; // email
+    name: string;
+    password?: string;
+}
+
+export interface EmailNotification {
+    id: string;
+    to: string;
+    subject: string;
+    body: string; // HTML content
+    attachmentUrl?: string; // Link to the voucher page
+    sentAt: string;
+}

@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useSettings } from '../context/SettingsContext';
 
 const SocialIcon: React.FC<{ href: string, children: React.ReactNode }> = ({ href, children }) => (
     <a href={href} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-secondary transition-colors duration-300">
@@ -9,13 +10,15 @@ const SocialIcon: React.FC<{ href: string, children: React.ReactNode }> = ({ hre
 );
 
 const Footer: React.FC = () => {
+  const { websiteName } = useSettings();
+
   return (
     <footer className="bg-neutral-dark text-white pt-16 pb-8">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             {/* Column 1: Brand */}
             <div className="md:col-span-1">
-                 <h2 className="text-2xl font-bold text-white mb-2">Umrah Hotels</h2>
+                 <h2 className="text-2xl font-bold text-white mb-2">{websiteName}</h2>
                  <p className="text-sm text-gray-400">Your trusted partner for spiritual journeys.</p>
                  <div className="flex space-x-4 mt-4">
                     <SocialIcon href="#"><svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M22.46 6c-.77.35-1.6.58-2.46.67.88-.53 1.56-1.37 1.88-2.38-.83.49-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98-3.56-.18-6.72-1.88-8.84-4.48-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.58-.7-.02-1.36-.21-1.94-.53v.05c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.52 8.52 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.38-.01-.57.84-.6 1.56-1.36 2.14-2.22z"></path></svg></SocialIcon>
@@ -53,7 +56,7 @@ const Footer: React.FC = () => {
             </div>
         </div>
         <div className="mt-8 border-t border-gray-700 pt-6 text-center text-sm text-gray-400">
-          <p>&copy; {new Date().getFullYear()} Umrah Hotels. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {websiteName}. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -20,7 +20,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ title, toggleSidebar }) => {
     const location = useLocation();
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const { logoUrl } = useSettings();
+    const { logoUrl, websiteName } = useSettings();
     const { currency, setCurrency } = useCurrency();
     
     const isAdmin = location.pathname.startsWith('/admin');
@@ -35,13 +35,14 @@ const Header: React.FC<HeaderProps> = ({ title, toggleSidebar }) => {
         { name: 'My Agency\'s Bookings', path: '#', roles: ['agent'] },
         { name: 'Home', path: '/', roles: ['customer'] },
         { name: 'Hotels', path: '/hotels', roles: ['customer'] },
-        { name: 'My Bookings', path: '/my-bookings', roles: ['customer'] },
         { name: 'Track Booking', path: '/track-booking', roles: ['customer'] },
         { name: 'Support', path: '/support', roles: ['customer'] },
     ];
     
     const currentRole = isAdmin ? 'admin' : isAgent ? 'agent' : 'customer';
     const visibleLinks = navLinks.filter(link => link.roles.includes(currentRole));
+    
+    const displayTitle = isAdmin || isAgent ? title : websiteName;
 
     return (
         <header className="bg-gradient-to-r from-primary to-primary-800 shadow-lg sticky top-0 z-40">
@@ -55,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({ title, toggleSidebar }) => {
                         )}
                         <Link to={isAdmin ? "/admin" : isAgent ? "/agent" : "/"} className="flex items-center space-x-3">
                             {logoUrl ? <img src={logoUrl} alt="Logo" className="h-12 w-auto" /> : <KaabaIcon />}
-                            <h1 className="text-2xl font-bold text-white tracking-wider">{title}</h1>
+                            <h1 className="text-2xl font-bold text-white tracking-wider">{displayTitle}</h1>
                         </Link>
                     </div>
                     <div className="flex items-center">
@@ -63,7 +64,6 @@ const Header: React.FC<HeaderProps> = ({ title, toggleSidebar }) => {
                             {visibleLinks.map(link => (
                                 <Link key={link.name} to={link.path} className="px-3 py-2 rounded-md hover:bg-white/10 transition-colors duration-300">{link.name}</Link>
                             ))}
-                            { (isAdmin || isAgent) && <Link to="/" className="px-3 py-2 rounded-md hover:bg-white/10 transition-colors duration-300">Exit Portal</Link>}
                         </nav>
                         <div className="ml-4">
                             <select 
@@ -90,7 +90,6 @@ const Header: React.FC<HeaderProps> = ({ title, toggleSidebar }) => {
                          {visibleLinks.map(link => (
                             <Link key={link.name} to={link.path} onClick={() => setMobileMenuOpen(false)} className="text-white hover:bg-primary-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">{link.name}</Link>
                         ))}
-                        { (isAdmin || isAgent) && <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-white hover:bg-primary-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Exit Portal</Link>}
                     </nav>
                 </div>
             )}
