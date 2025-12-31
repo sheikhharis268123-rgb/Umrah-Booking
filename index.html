@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Umrah Hotels | Makkah & Madina Bookings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Poppins', 'sans-serif'],
+            },
+            colors: {
+              primary: {
+                DEFAULT: '#006D77',
+                '50': '#F0F9FA',
+                '100': '#E0F2F1',
+                '200': '#B2DFDB',
+                '300': '#80CBC4',
+                '400': '#4DB6AC',
+                '500': '#26A69A',
+                '600': '#00897B',
+                '700': '#00796B',
+                '800': '#00695C',
+                '900': '#004D40'
+              },
+              secondary: '#E29578',
+              accent: '#FFDDD2',
+              neutral: {
+                'light': '#F8F9FA',
+                'dark': '#343A40'
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Style the calendar icon for date inputs */
+      input[type="date"]::-webkit-calendar-picker-indicator {
+          background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="15" viewBox="0 0 24 24"><path fill="%23006D77" d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z"/></svg>') no-repeat;
+          cursor: pointer;
+          opacity: 0.8;
+      }
+       input[type="date"]::-webkit-calendar-picker-indicator:hover {
+          opacity: 1;
+       }
+       @media print {
+        body * {
+            visibility: hidden;
+        }
+        #voucher-print-area, #voucher-print-area * {
+            visibility: visible;
+        }
+        #voucher-print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+       }
+    </style>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
