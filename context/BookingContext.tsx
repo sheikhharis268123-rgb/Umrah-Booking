@@ -107,7 +107,6 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     const addBooking = async (bookingData: Omit<Booking, 'id' | 'status'>, type: 'customer' | 'agent-assigned' = 'customer'): Promise<Booking> => {
         const apiPayload: any = {
             hotel_id: bookingData.hotel.id,
-            // FIX: Ensure room_id is always a string, as expected by the PHP backend.
             room_id: String(bookingData.room.id),
             guest_name: bookingData.guestName,
             guest_email: bookingData.guestEmail,
@@ -133,14 +132,24 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
                 body: JSON.stringify(apiPayload)
             });
 
-            const savedBookingData = await response.json();
             if (!response.ok) {
-                console.error("API Error on addBooking:", savedBookingData);
-                throw new Error(savedBookingData.error || "Failed to save booking to server.");
+                let errorMsg = `Server error: ${response.status} ${response.statusText}`;
+                try {
+                    const errorData = await response.json();
+                    console.error("API Error Response (JSON):", errorData);
+                    errorMsg = errorData.error || `Failed to save booking. Server returned: ${response.status}`;
+                } catch (e) {
+                    const errorText = await response.text();
+                    console.error("API Error Response (Non-JSON):", errorText);
+                    errorMsg = "An unexpected server error occurred. Please check the console for details.";
+                }
+                throw new Error(errorMsg);
             }
 
+            const savedBookingData = await response.json();
             const newBooking = mapApiBookingToLocal(savedBookingData);
-            if(newBooking) {
+
+            if (newBooking) {
                 setBookings(prev => [newBooking, ...prev]);
                 return newBooking;
             } else {
