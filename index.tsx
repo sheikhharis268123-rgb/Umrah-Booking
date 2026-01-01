@@ -27,15 +27,15 @@ root.render(
   <React.StrictMode>
     <HashRouter>
       <ToastProvider>
-        <InfoProvider>
-          <SettingsProvider>
-            <CurrencyProvider>
-              <NotificationProvider>
-                <CustomerProvider>
-                  <InvoiceProvider>
-                    <HotelProvider>
+        <NotificationProvider>
+          <InfoProvider>
+            <SettingsProvider>
+              <CurrencyProvider>
+                <AuthProvider>
+                  <HotelProvider>
+                    <InvoiceProvider>
                       <AgencyProvider>
-                        <AuthProvider>
+                        <CustomerProvider>
                           <BookingProvider>
                             <AgentProvider>
                               <BulkOrderProvider>
@@ -43,15 +43,15 @@ root.render(
                               </BulkOrderProvider>
                             </AgentProvider>
                           </BookingProvider>
-                        </AuthProvider>
+                        </CustomerProvider>
                       </AgencyProvider>
-                    </HotelProvider>
-                  </InvoiceProvider>
-                </CustomerProvider>
-              </NotificationProvider>
-            </CurrencyProvider>
-          </SettingsProvider>
-        </InfoProvider>
+                    </InvoiceProvider>
+                  </HotelProvider>
+                </AuthProvider>
+              </CurrencyProvider>
+            </SettingsProvider>
+          </InfoProvider>
+        </NotificationProvider>
       </ToastProvider>
     </HashRouter>
   </React.StrictMode>
