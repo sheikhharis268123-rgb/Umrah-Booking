@@ -88,16 +88,20 @@ const HotelForm: React.FC<HotelFormProps> = ({ hotelToEdit, onClose }) => {
         }
     };
     
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if ('id' in formData) {
-            updateHotel(formData);
-            addToast('Hotel updated successfully!', 'success');
-        } else {
-            addHotel(formData);
-            addToast('New hotel added successfully!', 'success');
+        try {
+            if ('id' in formData) {
+                await updateHotel(formData);
+                addToast('Hotel updated successfully!', 'success');
+            } else {
+                await addHotel(formData);
+                addToast('New hotel added successfully!', 'success');
+            }
+            onClose();
+        } catch (error: any) {
+            addToast(`Error: ${error.message || 'Could not save hotel.'}`, 'error');
         }
-        onClose();
     };
 
     return (

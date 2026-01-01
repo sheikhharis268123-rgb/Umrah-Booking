@@ -5,7 +5,6 @@ import { useHotels } from '../context/HotelContext';
 import Modal from '../components/Modal';
 import HotelForm from '../components/HotelForm';
 import { Hotel } from '../types';
-import { useBooking } from '../context/BookingContext';
 import { useToast } from '../context/ToastContext';
 
 const RefreshIcon: React.FC<{ isRefreshing: boolean }> = ({ isRefreshing }) => (
@@ -15,8 +14,7 @@ const RefreshIcon: React.FC<{ isRefreshing: boolean }> = ({ isRefreshing }) => (
 );
 
 const AdminHotelsPage: React.FC = () => {
-    const { hotels, deleteHotel } = useHotels();
-    const { refreshData } = useBooking();
+    const { hotels, deleteHotel, refreshHotels } = useHotels();
     const { addToast } = useToast();
 
     const [isModalOpen, setModalOpen] = useState(false);
@@ -26,12 +24,10 @@ const AdminHotelsPage: React.FC = () => {
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
-            // Note: This refreshes booking data which is the main live data source.
-            // A full implementation would have separate refresh handlers for each data type.
-            await refreshData();
-            addToast('Data refreshed successfully.', 'success');
+            await refreshHotels();
+            addToast('Hotel data refreshed successfully.', 'success');
         } catch {
-            addToast('Failed to refresh data.', 'error');
+            addToast('Failed to refresh hotels.', 'error');
         } finally {
             setIsRefreshing(false);
         }
@@ -51,9 +47,14 @@ const AdminHotelsPage: React.FC = () => {
         setModalOpen(true);
     };
 
-    const handleDelete = (hotelId: number) => {
+    const handleDelete = async (hotelId: number) => {
         if (window.confirm('Are you sure you want to delete this hotel? This action cannot be undone.')) {
-            deleteHotel(hotelId);
+            try {
+                await deleteHotel(hotelId);
+                addToast('Hotel deleted successfully.', 'success');
+            } catch (error: any) {
+                addToast(`Error: ${error.message || 'Could not delete hotel.'}`, 'error');
+            }
         }
     };
 

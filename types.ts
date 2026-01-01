@@ -68,6 +68,7 @@ export interface Booking {
     bookingType?: 'customer' | 'agent-assigned';
     requestedCheckInDate?: string;
     requestedCheckOutDate?: string;
+    requestedTotalPrice?: number;
     customerId?: string; // Link to customer account
 }
 

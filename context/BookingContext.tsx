@@ -39,15 +39,14 @@ const defaultBookingState: BookingDetails = {
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
 
 const mapApiBookingToLocal = (apiBooking: any): Booking | null => {
-    // Use loose equality (==) to handle potential type differences (number vs string) between JS and the API response.
     const hotel = HOTELS.find(h => h.id == apiBooking.hotel_id);
     if (!hotel) {
-        console.error(`[mapApiBookingToLocal] Hotel not found in constants for hotel_id: ${apiBooking.hotel_id}`);
+        console.error(`[mapApiBookingToLocal] Hotel not found for hotel_id: ${apiBooking.hotel_id}`);
         return null;
     }
     const room = hotel.rooms.find(r => r.id === apiBooking.room_id);
     if (!room) {
-        console.error(`[mapApiBookingToLocal] Room not found in constants for room_id: ${apiBooking.room_id} in hotel ${hotel.name}`);
+        console.error(`[mapApiBookingToLocal] Room not found for room_id: ${apiBooking.room_id} in hotel ${hotel.name}`);
         return null;
     }
 
@@ -66,6 +65,9 @@ const mapApiBookingToLocal = (apiBooking: any): Booking | null => {
         bookingType: apiBooking.booking_type,
         customerId: apiBooking.customer_id,
         promoCodeApplied: apiBooking.promo_code_applied,
+        requestedCheckInDate: apiBooking.requested_check_in_date || undefined,
+        requestedCheckOutDate: apiBooking.requested_check_out_date || undefined,
+        requestedTotalPrice: apiBooking.requested_total_price ? parseFloat(apiBooking.requested_total_price) : undefined,
     };
 };
 
@@ -86,7 +88,6 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         } catch (error) {
             console.error("Failed to fetch bookings, falling back to static data:", error);
             setBookings(STATIC_BOOKINGS);
-            throw error;
         }
     }, []);
 
@@ -96,18 +97,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     }, [fetchBookings]);
 
     const addBooking = async (bookingData: Omit<Booking, 'id' | 'status'>, type: 'customer' | 'agent-assigned' = 'customer'): Promise<Booking> => {
-        if (type === 'agent-assigned') { // Agent bookings are local-only for now
-            const newBooking: Booking = {
-                ...bookingData,
-                id: `BK-AGENT-${Date.now()}`,
-                status: 'Confirmed',
-                bookingType: 'agent-assigned',
-            };
-            setBookings(prev => [newBooking, ...prev]);
-            return newBooking;
-        }
-
-        const apiPayload = {
+        const apiPayload: any = {
             hotel_id: bookingData.hotel.id,
             room_id: bookingData.room.id,
             guest_name: bookingData.guestName,
@@ -121,6 +111,11 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             booking_type: type,
             customer_id: bookingData.customerId || null,
         };
+        
+        if (type === 'agent-assigned' && bookingData.agentDetails) {
+            apiPayload.agent_id = bookingData.agentDetails.agencyId;
+            apiPayload.show_price_on_voucher = bookingData.showPriceOnVoucher;
+        }
 
         try {
             const response = await fetch(`${API_URL}?endpoint=bookings`, {
@@ -130,7 +125,10 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             });
 
             const savedBookingData = await response.json();
-            if (!response.ok) throw new Error(savedBookingData.error || "Failed to save booking");
+            if (!response.ok) {
+                console.error("API Error on addBooking:", savedBookingData);
+                throw new Error(savedBookingData.error || "Failed to save booking to server.");
+            }
 
             const newBooking = mapApiBookingToLocal(savedBookingData);
             if(newBooking) {
@@ -147,18 +145,22 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     
     const updateBookingStatusAndNotify = async (bookingId: string, status: Booking['status']) => {
         const originalBookings = [...bookings];
-        // Optimistic update
         setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
 
         try {
-            const response = await fetch(`${API_URL}?endpoint=bookings/${bookingId}/status`, {
-                method: 'PUT',
+            const response = await fetch(`${API_URL}?endpoint=updateBookingStatus`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status })
+                body: JSON.stringify({ booking_id: bookingId, status: status })
             });
 
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Failed to update status');
+
+            const updatedBooking = mapApiBookingToLocal(data);
+            if (updatedBooking) {
+                setBookings(prev => prev.map(b => b.id === bookingId ? updatedBooking : b));
+            }
 
             const booking = originalBookings.find(b => b.id === bookingId);
             if (booking) {
@@ -170,16 +172,20 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             }
         } catch (error) {
             console.error("Failed to update booking status:", error);
-            setBookings(originalBookings); // Rollback on error
+            setBookings(originalBookings);
             throw error;
         }
     };
     
-    // Local-only state updates
     const updateBooking = (updatedBooking: Booking) => setBookings(prev => prev.map(b => b.id === updatedBooking.id ? updatedBooking : b));
     const deleteBookings = (bookingIds: string[]) => setBookings(prev => prev.filter(b => !bookingIds.includes(b.id)));
-    const requestCancellation = (bookingId: string) => setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Cancellation Requested' } : b));
-    const requestDateChange = (bookingId: string, newCheckIn: string, newCheckOut: string) => setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Date Change Requested', requestedCheckInDate: newCheckIn, requestedCheckOutDate: newCheckOut } : b));
+    
+    const requestCancellation = (bookingId: string) => updateBookingStatusAndNotify(bookingId, 'Cancellation Requested');
+
+    const requestDateChange = (bookingId: string, newCheckIn: string, newCheckOut: string, newTotalPrice: number) => {
+        setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Date Change Requested', requestedCheckInDate: newCheckIn, requestedCheckOutDate: newCheckOut, requestedTotalPrice: newTotalPrice } : b));
+    };
+
     const approveChangeRequest = (bookingId: string) => updateBookingStatusAndNotify(bookingId, 'Confirmed');
     const rejectChangeRequest = (bookingId: string) => updateBookingStatusAndNotify(bookingId, 'Confirmed');
 
