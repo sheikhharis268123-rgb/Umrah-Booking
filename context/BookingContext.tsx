@@ -117,9 +117,9 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             check_out_date: bookingData.checkOutDate,
             total_price: bookingData.totalPrice,
             payment_method: bookingData.paymentMethod,
-            promo_code_applied: bookingData.promoCodeApplied,
+            promo_code_applied: bookingData.promoCodeApplied || null,
             booking_type: type,
-            customer_id: bookingData.customerId,
+            customer_id: bookingData.customerId || null,
         };
 
         try {
