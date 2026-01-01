@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { Hotel, Room, Booking } from '../types';
 import { BOOKINGS as STATIC_BOOKINGS } from '../constants';
@@ -108,7 +107,8 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     const addBooking = async (bookingData: Omit<Booking, 'id' | 'status'>, type: 'customer' | 'agent-assigned' = 'customer'): Promise<Booking> => {
         const apiPayload: any = {
             hotel_id: bookingData.hotel.id,
-            room_id: bookingData.room.id,
+            // FIX: Ensure room_id is always a string, as expected by the PHP backend.
+            room_id: String(bookingData.room.id),
             guest_name: bookingData.guestName,
             guest_email: bookingData.guestEmail,
             contact_number: bookingData.contactNumber,
