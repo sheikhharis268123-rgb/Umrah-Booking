@@ -51,7 +51,25 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             console.error(`[mapApiBookingToLocal] Hotel not found for hotel_id: ${apiBooking.hotel_id}`);
             return null;
         }
-        const room = hotel.rooms.find(r => r.id.toString() === apiBooking.room_id.toString());
+        
+        const room = hotel.rooms.find(r => {
+            const apiRoomIdStr = String(apiBooking.room_id);
+            // Case 1: The room ID from API is the full string '1-1' (for old data)
+            if (r.id === apiRoomIdStr) {
+                return true;
+            }
+            // Case 2: The room ID from API is just the integer part '1'
+            // We check that the room's ID starts with the hotel's ID and ends with the API's room ID.
+            // This is a robust way to find "1-1" when given hotel=1 and room=1.
+            const localRoomIdParts = r.id.split('-');
+            if (localRoomIdParts.length === 2 && 
+                localRoomIdParts[0] === String(hotel.id) && 
+                localRoomIdParts[1] === apiRoomIdStr) {
+                return true;
+            }
+            return false;
+        });
+
         if (!room) {
             console.error(`[mapApiBookingToLocal] Room not found for room_id: ${apiBooking.room_id} in hotel ${hotel.name}`);
             return null;
@@ -105,9 +123,12 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     }, [fetchBookings]);
 
     const addBooking = async (bookingData: Omit<Booking, 'id' | 'status'>, type: 'customer' | 'agent-assigned' = 'customer'): Promise<Booking> => {
+        // FIX: Extract the numeric part of the room ID to send to the backend, which expects an integer.
+        const roomIdInt = parseInt(String(bookingData.room.id).split('-').pop() || '0');
+
         const apiPayload: any = {
             hotel_id: bookingData.hotel.id,
-            room_id: String(bookingData.room.id),
+            room_id: roomIdInt,
             guest_name: bookingData.guestName,
             guest_email: bookingData.guestEmail,
             contact_number: bookingData.contactNumber,
