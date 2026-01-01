@@ -1,5 +1,6 @@
+
 import React, { useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StarRating from '../components/StarRating';
@@ -9,12 +10,18 @@ import BookingModal from '../components/BookingModal';
 import AmenityIcon from '../components/AmenityIcon';
 import { useHotels } from '../context/HotelContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const HotelDetailPage: React.FC = () => {
     const { hotelId } = useParams<{ hotelId: string }>();
     const { openBookingModal } = useBooking();
     const { hotels } = useHotels();
     const { convertPrice } = useCurrency();
+    const { user } = useAuth();
+    const { addToast } = useToast();
+    const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -39,7 +46,12 @@ const HotelDetailPage: React.FC = () => {
     }
     
     const handleBookNow = (room: Room) => {
-        openBookingModal(hotel, room);
+        if (user && user.role === 'customer') {
+            openBookingModal(hotel, room);
+        } else {
+            addToast('Please log in to book a room.', 'info');
+            navigate('/login', { state: { from: location } });
+        }
     };
 
     return (
