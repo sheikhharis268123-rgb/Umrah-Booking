@@ -3,7 +3,7 @@ import React, { useEffect, useMemo } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useBooking } from '../context/BookingContext';
-import { Booking } from '../types';
+import { Booking, Customer } from '../types';
 import { Link } from 'react-router-dom';
 import { useCurrency } from '../context/CurrencyContext';
 import { useAuth } from '../context/AuthContext';
@@ -19,11 +19,18 @@ const MyBookingsPage: React.FC = () => {
 
     const myBookings = useMemo(() => {
         if (!user || user.role !== 'customer') return [];
-        // Filter bookings where the customerId matches the logged-in user's ID
-        // Also include bookings where the guestEmail matches, for bookings made before logging in.
-        // FIX: The user's email is stored in `user.id` for customers. `user.data` (of type Customer) does not have an `email` property.
-        return bookings.filter(b => b.customerId === user.id || b.guestEmail === user.id);
+
+        const customerId = user.id;
+        const customerEmail = (user.data as Customer)?.email;
+
+        return bookings.filter(b => 
+            // Match by the customer ID stored in the booking
+            b.customerId === customerId ||
+            // Fallback: match by email if customer ID is not present (e.g., for bookings made before signing up)
+            (customerEmail && !b.customerId && b.guestEmail.toLowerCase() === customerEmail.toLowerCase())
+        );
     }, [bookings, user]);
+
 
     const getStatusColor = (status: Booking['status']) => {
         switch (status) {

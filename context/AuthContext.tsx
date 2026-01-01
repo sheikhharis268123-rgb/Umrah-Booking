@@ -30,13 +30,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     try {
-      const storedUser = sessionStorage.getItem('user');
+      const storedUser = localStorage.getItem('user');
       if (storedUser) {
         setUser(JSON.parse(storedUser));
       }
     } catch (error) {
-      console.error("Failed to parse user from session storage", error);
-      sessionStorage.removeItem('user');
+      console.error("Failed to parse user from local storage", error);
+      localStorage.removeItem('user');
     } finally {
       setLoading(false);
     }
@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (idOrEmail === '990990' && pass === 'Haris@1122@11') {
         const adminUser = { id: idOrEmail, role };
         setUser(adminUser);
-        sessionStorage.setItem('user', JSON.stringify(adminUser));
+        localStorage.setItem('user', JSON.stringify(adminUser));
         return true;
       }
       return false;
@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             data: data.user
         };
         setUser(authenticatedUser);
-        sessionStorage.setItem('user', JSON.stringify(authenticatedUser));
+        localStorage.setItem('user', JSON.stringify(authenticatedUser));
         return true;
     } catch (error) {
         console.error('Login error:', error);
@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = () => {
     const role = user?.role;
     setUser(null);
-    sessionStorage.removeItem('user');
+    localStorage.removeItem('user');
     
     if (role === 'admin') {
         navigate('/admin/login');

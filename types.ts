@@ -108,9 +108,10 @@ export type Currency = 'USD' | 'SAR' | 'PKR';
 
 // New Types for Customer Auth and Notifications
 export interface Customer {
-    id: string; // email
+    id: number; // The numeric ID from the database
     name: string;
-    password?: string;
+    email: string;
+    password?: string; // Only used for forms
 }
 
 export interface EmailNotification {

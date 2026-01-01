@@ -1,8 +1,9 @@
 
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { Hotel, Room, Booking } from '../types';
-import { HOTELS, BOOKINGS as STATIC_BOOKINGS } from '../constants';
+import { BOOKINGS as STATIC_BOOKINGS } from '../constants';
 import { useNotification } from './NotificationProvider';
+import { useHotels } from './HotelContext';
 
 const API_URL = 'https://sandybrown-parrot-500490.hostingersite.com/api.php'; 
 
@@ -38,47 +39,53 @@ const defaultBookingState: BookingDetails = {
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
 
-const mapApiBookingToLocal = (apiBooking: any): Booking | null => {
-    const hotel = HOTELS.find(h => h.id == apiBooking.hotel_id);
-    if (!hotel) {
-        console.error(`[mapApiBookingToLocal] Hotel not found for hotel_id: ${apiBooking.hotel_id}`);
-        return null;
-    }
-    const room = hotel.rooms.find(r => r.id === apiBooking.room_id);
-    if (!room) {
-        console.error(`[mapApiBookingToLocal] Room not found for room_id: ${apiBooking.room_id} in hotel ${hotel.name}`);
-        return null;
-    }
-
-    return {
-        id: apiBooking.id,
-        hotel,
-        room,
-        guestName: apiBooking.guest_name,
-        guestEmail: apiBooking.guest_email,
-        contactNumber: apiBooking.contact_number,
-        checkInDate: apiBooking.check_in_date,
-        checkOutDate: apiBooking.check_out_date,
-        totalPrice: parseFloat(apiBooking.total_price),
-        status: apiBooking.status,
-        paymentMethod: apiBooking.payment_method,
-        bookingType: apiBooking.booking_type,
-        customerId: apiBooking.customer_id,
-        promoCodeApplied: apiBooking.promo_code_applied,
-        requestedCheckInDate: apiBooking.requested_check_in_date || undefined,
-        requestedCheckOutDate: apiBooking.requested_check_out_date || undefined,
-        requestedTotalPrice: apiBooking.requested_total_price ? parseFloat(apiBooking.requested_total_price) : undefined,
-    };
-};
-
 export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { sendNotification } = useNotification();
+    const { hotels: dynamicHotels } = useHotels();
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [bookingDetails, setBookingDetails] = useState<BookingDetails>(defaultBookingState);
     const [isBookingModalOpen, setBookingModalOpen] = useState(false);
 
+    const mapApiBookingToLocal = useCallback((apiBooking: any): Booking | null => {
+        const hotel = dynamicHotels.find(h => h.id == apiBooking.hotel_id);
+        if (!hotel) {
+            console.error(`[mapApiBookingToLocal] Hotel not found for hotel_id: ${apiBooking.hotel_id}`);
+            return null;
+        }
+        const room = hotel.rooms.find(r => r.id.toString() === apiBooking.room_id.toString());
+        if (!room) {
+            console.error(`[mapApiBookingToLocal] Room not found for room_id: ${apiBooking.room_id} in hotel ${hotel.name}`);
+            return null;
+        }
+
+        return {
+            id: apiBooking.id,
+            hotel,
+            room,
+            guestName: apiBooking.guest_name,
+            guestEmail: apiBooking.guest_email,
+            contactNumber: apiBooking.contact_number,
+            checkInDate: apiBooking.check_in_date,
+            checkOutDate: apiBooking.check_out_date,
+            totalPrice: parseFloat(apiBooking.total_price),
+            status: apiBooking.status,
+            paymentMethod: apiBooking.payment_method,
+            bookingType: apiBooking.booking_type,
+            customerId: apiBooking.customer_id ? String(apiBooking.customer_id) : undefined,
+            promoCodeApplied: apiBooking.promo_code_applied,
+            requestedCheckInDate: apiBooking.requested_check_in_date || undefined,
+            requestedCheckOutDate: apiBooking.requested_check_out_date || undefined,
+            requestedTotalPrice: apiBooking.requested_total_price ? parseFloat(apiBooking.requested_total_price) : undefined,
+        };
+    }, [dynamicHotels]);
+
+
     const fetchBookings = useCallback(async () => {
+        if (dynamicHotels.length === 0) {
+            // Wait for hotels to be loaded before fetching bookings
+            return;
+        }
         try {
             const response = await fetch(`${API_URL}?endpoint=bookings`);
             if (!response.ok) throw new Error('Network response was not ok');
@@ -87,9 +94,12 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             setBookings(mappedBookings);
         } catch (error) {
             console.error("Failed to fetch bookings, falling back to static data:", error);
-            setBookings(STATIC_BOOKINGS);
+            // Fallback to static data only if API fails and hotels are also missing.
+            if(dynamicHotels.length === 0) {
+                setBookings(STATIC_BOOKINGS);
+            }
         }
-    }, []);
+    }, [dynamicHotels, mapApiBookingToLocal]);
 
     useEffect(() => {
         setIsLoading(true);
@@ -135,7 +145,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
                 setBookings(prev => [newBooking, ...prev]);
                 return newBooking;
             } else {
-                throw new Error("Failed to map API response to local booking format.");
+                throw new Error("Failed to map API response to local booking format. This may be due to outdated hotel data.");
             }
         } catch (error) {
             console.error("Error adding booking:", error);
