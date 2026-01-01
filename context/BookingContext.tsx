@@ -39,7 +39,7 @@ const BookingContext = createContext<BookingContextType | undefined>(undefined);
 
 export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { sendNotification } = useNotification();
-    const { hotels: dynamicHotels } = useHotels();
+    const { hotels: dynamicHotels, isLoading: areHotelsLoading } = useHotels();
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [bookingDetails, setBookingDetails] = useState<BookingDetails>(defaultBookingState);
@@ -54,13 +54,9 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         
         const room = hotel.rooms.find(r => {
             const apiRoomIdStr = String(apiBooking.room_id);
-            // Case 1: The room ID from API is the full string '1-1' (for old data)
             if (r.id === apiRoomIdStr) {
                 return true;
             }
-            // Case 2: The room ID from API is just the integer part '1'
-            // We check that the room's ID starts with the hotel's ID and ends with the API's room ID.
-            // This is a robust way to find "1-1" when given hotel=1 and room=1.
             const localRoomIdParts = r.id.split('-');
             if (localRoomIdParts.length === 2 && 
                 localRoomIdParts[0] === String(hotel.id) && 
@@ -98,8 +94,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
 
     const fetchBookings = useCallback(async () => {
-        if (dynamicHotels.length === 0) {
-            // Wait for hotels to be loaded before fetching bookings
+        if (areHotelsLoading || dynamicHotels.length === 0) {
             return;
         }
         try {
@@ -110,20 +105,19 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             setBookings(mappedBookings);
         } catch (error) {
             console.error("Failed to fetch bookings, falling back to static data:", error);
-            // Fallback to static data only if API fails and hotels are also missing.
             if(dynamicHotels.length === 0) {
                 setBookings(STATIC_BOOKINGS);
             }
+        } finally {
+            setIsLoading(false);
         }
-    }, [dynamicHotels, mapApiBookingToLocal]);
+    }, [dynamicHotels, areHotelsLoading, mapApiBookingToLocal]);
 
     useEffect(() => {
-        setIsLoading(true);
-        fetchBookings().finally(() => setIsLoading(false));
+        fetchBookings();
     }, [fetchBookings]);
 
     const addBooking = async (bookingData: Omit<Booking, 'id' | 'status'>, type: 'customer' | 'agent-assigned' = 'customer'): Promise<Booking> => {
-        // FIX: Extract the numeric part of the room ID to send to the backend, which expects an integer.
         const roomIdInt = parseInt(String(bookingData.room.id).split('-').pop() || '0');
 
         const apiPayload: any = {
@@ -237,8 +231,6 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const closeBookingModal = () => setBookingModalOpen(false);
 
-    if (isLoading) return <div className="flex h-screen items-center justify-center"><p className="text-xl font-semibold text-primary">Loading Booking Data...</p></div>;
-
     return (
         <BookingContext.Provider value={{
             bookings, bookingDetails, setBookingDetails, addBooking, updateBooking, 
@@ -246,7 +238,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             closeBookingModal, requestCancellation, requestDateChange, approveChangeRequest, 
             rejectChangeRequest, refreshData: fetchBookings,
         }}>
-            {children}
+            {isLoading ? <div className="flex h-screen items-center justify-center"><p className="text-xl font-semibold text-primary">Loading Booking Data...</p></div> : children}
         </BookingContext.Provider>
     );
 };

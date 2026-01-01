@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { Hotel } from '../types';
 import { HOTELS } from '../constants'; // Kept for fallback on API error
@@ -136,14 +135,9 @@ export const HotelProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         }
     };
 
-    if (isLoading) {
-         return <div className="flex h-screen items-center justify-center"><p className="text-xl font-semibold text-primary">Loading Hotel Data...</p></div>;
-    }
-
-
     return (
         <HotelContext.Provider value={{ hotels, addHotel, updateHotel, deleteHotel, isLoading, refreshHotels: fetchHotels }}>
-            {children}
+            {isLoading ? <div className="flex h-screen items-center justify-center"><p className="text-xl font-semibold text-primary">Loading Hotel Data...</p></div> : children}
         </HotelContext.Provider>
     );
 };
