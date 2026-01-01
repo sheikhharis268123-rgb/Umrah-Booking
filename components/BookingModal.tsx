@@ -5,10 +5,12 @@ import { useBooking } from '../context/BookingContext';
 import { Booking, PromoCode } from '../types';
 import { useCurrency } from '../context/CurrencyContext';
 import { useSettings } from '../context/SettingsContext';
+import { useAuth } from '../context/AuthContext';
 
 const BookingModal: React.FC = () => {
     const { isBookingModalOpen, closeBookingModal, bookingDetails, setBookingDetails, addBooking } = useBooking();
     const { promoCodes } = useSettings();
+    const { user } = useAuth();
     const navigate = useNavigate();
     const { convertPrice } = useCurrency();
 
@@ -21,6 +23,19 @@ const BookingModal: React.FC = () => {
     const [isProcessing, setProcessing] = useState(false);
     
     const [originalPrice, setOriginalPrice] = useState(0);
+    
+    useEffect(() => {
+        // Pre-fill form if a customer is logged in
+        if (user && user.role === 'customer' && user.data) {
+            const customerData = user.data as any; // Customer type
+            setGuestName(customerData.name);
+            setGuestEmail(customerData.email); // The user's ID is their email in the DB
+        } else {
+            // Reset if modal opens for a logged-out user
+            setGuestName('');
+            setGuestEmail('');
+        }
+    }, [user, isBookingModalOpen]);
 
     useEffect(() => {
         if (bookingDetails.checkInDate && bookingDetails.checkOutDate && bookingDetails.room) {
@@ -31,11 +46,7 @@ const BookingModal: React.FC = () => {
             setOriginalPrice(calculatedPrice);
             setBookingDetails(prev => ({ ...prev, totalPrice: calculatedPrice }));
             
-            // Clear promo on date change
-            setAppliedPromo(null);
-            setPromoCode('');
-            setPromoMessage('');
-
+            setAppliedPromo(null); setPromoCode(''); setPromoMessage('');
         }
     }, [bookingDetails.checkInDate, bookingDetails.checkOutDate, bookingDetails.room, setBookingDetails]);
     
@@ -44,7 +55,7 @@ const BookingModal: React.FC = () => {
             let discountedPrice = originalPrice;
             if (appliedPromo.type === 'percentage') {
                 discountedPrice = originalPrice - (originalPrice * appliedPromo.discount / 100);
-            } else { // fixed
+            } else {
                 discountedPrice = Math.max(0, originalPrice - appliedPromo.discount);
             }
             setBookingDetails(prev => ({...prev, totalPrice: discountedPrice}));
@@ -54,15 +65,13 @@ const BookingModal: React.FC = () => {
     }, [originalPrice, appliedPromo, setBookingDetails]);
 
 
-    if (!isBookingModalOpen || !bookingDetails.hotel || !bookingDetails.room) {
-        return null;
-    }
+    if (!isBookingModalOpen || !bookingDetails.hotel || !bookingDetails.room) return null;
 
     const handleApplyPromo = () => {
         const foundPromo = promoCodes.find(p => p.code.toUpperCase() === promoCode.toUpperCase());
         if (foundPromo) {
             setAppliedPromo(foundPromo);
-            setPromoMessage(`Success! ${foundPromo.discount}${foundPromo.type === 'percentage' ? '%' : '$'} discount applied.`);
+            setPromoMessage(`Success! Discount applied.`);
         } else {
             setAppliedPromo(null);
             setPromoMessage('Invalid promo code.');
@@ -75,27 +84,19 @@ const BookingModal: React.FC = () => {
 
         try {
             const newBookingData: Omit<Booking, 'id' | 'status'> = {
-                hotel: bookingDetails.hotel!,
-                room: bookingDetails.room!,
-                guestName,
-                guestEmail,
-                contactNumber,
-                checkInDate: bookingDetails.checkInDate,
-                checkOutDate: bookingDetails.checkOutDate,
-                totalPrice: bookingDetails.totalPrice,
-                paymentMethod: 'Online', // Default for customer bookings
-                promoCodeApplied: appliedPromo?.code,
+                hotel: bookingDetails.hotel!, room: bookingDetails.room!, guestName, guestEmail, contactNumber,
+                checkInDate: bookingDetails.checkInDate, checkOutDate: bookingDetails.checkOutDate,
+                totalPrice: bookingDetails.totalPrice, paymentMethod: 'Online', promoCodeApplied: appliedPromo?.code,
+                customerId: user && user.role === 'customer' ? user.id : undefined,
             };
             const confirmedBooking = await addBooking(newBookingData, 'customer');
             
-            // Reset local state
-            setGuestName(''); setGuestEmail(''); setContactNumber(''); setPromoCode(''); setAppliedPromo(null); setPromoMessage('');
+            setContactNumber(''); setPromoCode(''); setAppliedPromo(null); setPromoMessage('');
             closeBookingModal();
             navigate(`/confirmation/${confirmedBooking.id}`);
 
         } catch (error) {
             console.error("Failed to confirm booking:", error);
-            // You can add a user-facing error message here, e.g., using a toast.
             alert("There was an error confirming your booking. Please try again.");
         } finally {
             setProcessing(false);
@@ -115,7 +116,6 @@ const BookingModal: React.FC = () => {
                     <h2 className="text-2xl font-bold text-primary">Confirm Your Booking</h2>
                     <p className="text-gray-600">{bookingDetails.hotel.name} - {bookingDetails.room.type} Room</p>
                 </div>
-
                 <form onSubmit={handleConfirmBooking}>
                     <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
                         <div className="grid grid-cols-2 gap-4">
@@ -142,7 +142,6 @@ const BookingModal: React.FC = () => {
                                 <input type="tel" id="contactNumber" value={contactNumber} onChange={e => setContactNumber(e.target.value)} className={inputStyle} required />
                             </div>
                         </div>
-
                         <div>
                              <label htmlFor="promoCode" className="block text-sm font-medium text-gray-700">Promo Code (Optional)</label>
                              <div className="flex space-x-2 mt-1">
@@ -151,26 +150,16 @@ const BookingModal: React.FC = () => {
                              </div>
                              {promoMessage && <p className={`text-sm mt-2 ${appliedPromo ? 'text-green-600' : 'text-red-500'}`}>{promoMessage}</p>}
                         </div>
-
                          <div className="pt-4 border-t text-right">
                              {appliedPromo && <p className="text-sm text-gray-500 line-through">{convertPrice(originalPrice)}</p>}
                              <p className="text-sm text-gray-500">Total Price</p>
                              <p className="text-3xl font-bold text-primary">{convertPrice(bookingDetails.totalPrice)}</p>
                          </div>
                     </div>
-                    
                     <div className="bg-gray-50 p-4 flex justify-end space-x-3">
                         <button type="button" onClick={closeBookingModal} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
                         <button type="submit" disabled={isProcessing} className="px-6 py-2 bg-secondary text-white font-bold rounded-md hover:bg-opacity-90 disabled:bg-opacity-50 flex items-center">
-                            {isProcessing ? (
-                                <>
-                                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                  </svg>
-                                  Processing...
-                                </>
-                            ) : 'Confirm Booking'}
+                            {isProcessing ? 'Processing...' : 'Confirm Booking'}
                         </button>
                     </div>
                 </form>

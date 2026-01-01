@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { Currency } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 
 const KaabaIcon: React.FC = () => (
@@ -22,25 +23,23 @@ const Header: React.FC<HeaderProps> = ({ title, toggleSidebar }) => {
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { logoUrl, websiteName } = useSettings();
     const { currency, setCurrency } = useCurrency();
+    const { user, logout } = useAuth();
     
     const isAdmin = location.pathname.startsWith('/admin');
     const isAgent = location.pathname.startsWith('/agent');
 
     const navLinks = [
-        { name: 'Dashboard', path: '/admin', roles: ['admin'] },
-        { name: 'Bookings', path: '/admin/bookings', roles: ['admin'] },
-        { name: 'Hotels', path: '/admin/hotels', roles: ['admin'] },
-        { name: 'Settings', path: '/admin/settings', roles: ['admin'] },
-        { name: 'Dashboard', path: '/agent', roles: ['agent'] },
-        { name: 'My Agency\'s Bookings', path: '#', roles: ['agent'] },
         { name: 'Home', path: '/', roles: ['customer'] },
         { name: 'Hotels', path: '/hotels', roles: ['customer'] },
+        { name: 'My Bookings', path: '/my-bookings', roles: ['customer'], auth: true },
         { name: 'Track Booking', path: '/track-booking', roles: ['customer'] },
         { name: 'Support', path: '/support', roles: ['customer'] },
     ];
     
     const currentRole = isAdmin ? 'admin' : isAgent ? 'agent' : 'customer';
-    const visibleLinks = navLinks.filter(link => link.roles.includes(currentRole));
+    const visibleLinks = navLinks.filter(link => 
+        link.roles.includes(currentRole) && (!link.auth || (link.auth && user?.role === 'customer'))
+    );
     
     const displayTitle = isAdmin || isAgent ? title : websiteName;
 
@@ -64,16 +63,21 @@ const Header: React.FC<HeaderProps> = ({ title, toggleSidebar }) => {
                             {visibleLinks.map(link => (
                                 <Link key={link.name} to={link.path} className="px-3 py-2 rounded-md hover:bg-white/10 transition-colors duration-300">{link.name}</Link>
                             ))}
+                            {currentRole === 'customer' && (
+                                user && user.role === 'customer' ? (
+                                    <button onClick={logout} className="px-3 py-2 rounded-md hover:bg-white/10 transition-colors duration-300">Logout</button>
+                                ) : (
+                                    <Link to="/login" className="bg-secondary text-white font-bold py-2 px-4 rounded-md hover:bg-opacity-90 transition duration-300 ml-4">Login / Signup</Link>
+                                )
+                            )}
                         </nav>
-                        <div className="ml-4">
+                         <div className="ml-4 hidden md:block">
                             <select 
                                 value={currency} 
                                 onChange={(e) => setCurrency(e.target.value as Currency)}
                                 className="bg-white/20 text-white border-none rounded-md py-1.5 pl-2 pr-8 text-sm focus:ring-2 focus:ring-white/50 focus:outline-none"
                             >
-                                <option value="PKR">PKR</option>
-                                <option value="SAR">SAR</option>
-                                <option value="USD">USD</option>
+                                <option value="PKR">PKR</option><option value="SAR">SAR</option><option value="USD">USD</option>
                             </select>
                         </div>
                         <div className="md:hidden ml-4">
@@ -88,8 +92,15 @@ const Header: React.FC<HeaderProps> = ({ title, toggleSidebar }) => {
                  <div className="md:hidden bg-primary-800">
                     <nav className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                          {visibleLinks.map(link => (
-                            <Link key={link.name} to={link.path} onClick={() => setMobileMenuOpen(false)} className="text-white hover:bg-primary-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">{link.name}</Link>
+                            <Link key={link.name} to={link.path} onClick={() => setMobileMenuOpen(false)} className="text-white hover:bg-primary-700 block px-3 py-2 rounded-md text-base font-medium">{link.name}</Link>
                         ))}
+                         {currentRole === 'customer' && (
+                            user && user.role === 'customer' ? (
+                                <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="text-left w-full text-white hover:bg-primary-700 block px-3 py-2 rounded-md text-base font-medium">Logout</button>
+                            ) : (
+                                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="text-white bg-secondary block px-3 py-2 rounded-md text-base font-medium">Login / Signup</Link>
+                            )
+                        )}
                     </nav>
                 </div>
             )}

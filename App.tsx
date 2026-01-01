@@ -27,6 +27,9 @@ import AdminRequestsPage from './pages/AdminRequestsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AgentLoginPage from './pages/AgentLoginPage';
+import CustomerLoginPage from './pages/CustomerLoginPage';
+import CustomerSignupPage from './pages/CustomerSignupPage';
+import AdminNotificationsPage from './pages/AdminNotificationsPage';
 
 
 function App() {
@@ -43,6 +46,8 @@ function App() {
           <Route path="/voucher/:bookingId" element={<VoucherPage />} />
           <Route path="/track-booking" element={<TrackBookingPage />} />
           <Route path="/support" element={<SupportPage />} />
+          <Route path="/login" element={<CustomerLoginPage />} />
+          <Route path="/signup" element={<CustomerSignupPage />} />
 
           {/* Auth Routes */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -57,6 +62,7 @@ function App() {
           <Route path="/admin/agencies" element={<ProtectedRoute role="admin"><AdminAgenciesPage /></ProtectedRoute>} />
           <Route path="/admin/invoices" element={<ProtectedRoute role="admin"><AdminInvoicesPage /></ProtectedRoute>} />
           <Route path="/admin/financials" element={<ProtectedRoute role="admin"><AdminFinancialsPage /></ProtectedRoute>} />
+          <Route path="/admin/notifications" element={<ProtectedRoute role="admin"><AdminNotificationsPage /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute role="admin"><AdminSettingsPage /></ProtectedRoute>} />
           <Route path="/admin/voucher/:bookingId" element={<ProtectedRoute role="admin"><AdminVoucherPage /></ProtectedRoute>} />
 

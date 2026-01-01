@@ -14,6 +14,8 @@ import { BulkOrderProvider } from './context/BulkOrderContext';
 import { InvoiceProvider } from './context/InvoiceContext';
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider } from './context/AuthContext';
+import { CustomerProvider } from './context/CustomerContext';
+import { NotificationProvider } from './context/NotificationProvider';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -28,21 +30,25 @@ root.render(
         <InfoProvider>
           <SettingsProvider>
             <CurrencyProvider>
-              <InvoiceProvider>
-                <HotelProvider>
-                  <AgencyProvider>
-                    <AuthProvider>
-                      <BookingProvider>
-                        <AgentProvider>
-                          <BulkOrderProvider>
-                            <App />
-                          </BulkOrderProvider>
-                        </AgentProvider>
-                      </BookingProvider>
-                    </AuthProvider>
-                  </AgencyProvider>
-                </HotelProvider>
-              </InvoiceProvider>
+              <NotificationProvider>
+                <CustomerProvider>
+                  <InvoiceProvider>
+                    <HotelProvider>
+                      <AgencyProvider>
+                        <AuthProvider>
+                          <BookingProvider>
+                            <AgentProvider>
+                              <BulkOrderProvider>
+                                <App />
+                              </BulkOrderProvider>
+                            </AgentProvider>
+                          </BookingProvider>
+                        </AuthProvider>
+                      </AgencyProvider>
+                    </HotelProvider>
+                  </InvoiceProvider>
+                </CustomerProvider>
+              </NotificationProvider>
             </CurrencyProvider>
           </SettingsProvider>
         </InfoProvider>

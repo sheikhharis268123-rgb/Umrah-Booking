@@ -16,7 +16,7 @@ const RefreshIcon: React.FC<{ isRefreshing: boolean }> = ({ isRefreshing }) => (
 );
 
 const AdminBookingsPage: React.FC = () => {
-    const { bookings, updateBookingStatus, deleteBookings, refreshData } = useBooking();
+    const { bookings, updateBookingStatusAndNotify, deleteBookings, refreshData } = useBooking();
     const { agencies } = useAgency();
     const { convertPrice } = useCurrency();
     const { addToast } = useToast();
@@ -44,8 +44,13 @@ const AdminBookingsPage: React.FC = () => {
         }
     };
 
-    const handleStatusChange = (bookingId: string, newStatus: Booking['status']) => {
-        updateBookingStatus(bookingId, newStatus);
+    const handleStatusChange = async (bookingId: string, newStatus: Booking['status']) => {
+        try {
+            await updateBookingStatusAndNotify(bookingId, newStatus);
+            addToast(`Booking ${bookingId} status updated to ${newStatus}.`, 'success');
+        } catch (error) {
+            addToast(`Failed to update status for ${bookingId}.`, 'error');
+        }
     };
 
     const filteredBookings = useMemo(() => {
@@ -79,7 +84,7 @@ const AdminBookingsPage: React.FC = () => {
     };
     
     const handleDeleteSelected = () => {
-        if (window.confirm(`Are you sure you want to delete ${selectedBookings.length} booking(s)?`)) {
+        if (window.confirm(`Are you sure you want to delete ${selectedBookings.length} booking(s)? This is a local action.`)) {
             deleteBookings(selectedBookings);
             addToast(`${selectedBookings.length} booking(s) deleted.`, 'success');
             setSelectedBookings([]);

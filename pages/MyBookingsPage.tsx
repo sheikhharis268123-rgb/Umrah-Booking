@@ -6,20 +6,24 @@ import { useBooking } from '../context/BookingContext';
 import { Booking } from '../types';
 import { Link } from 'react-router-dom';
 import { useCurrency } from '../context/CurrencyContext';
+import { useAuth } from '../context/AuthContext';
 
 const MyBookingsPage: React.FC = () => {
     const { convertPrice } = useCurrency();
     const { bookings } = useBooking();
+    const { user } = useAuth();
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
-    // In a real app, you'd filter bookings for the logged-in user.
-    // Here we'll display all non-agent bookings for demonstration.
     const myBookings = useMemo(() => {
-        return bookings.filter(b => b.bookingType !== 'agent-assigned');
-    }, [bookings]);
+        if (!user || user.role !== 'customer') return [];
+        // Filter bookings where the customerId matches the logged-in user's ID
+        // Also include bookings where the guestEmail matches, for bookings made before logging in.
+        // FIX: The user's email is stored in `user.id` for customers. `user.data` (of type Customer) does not have an `email` property.
+        return bookings.filter(b => b.customerId === user.id || b.guestEmail === user.id);
+    }, [bookings, user]);
 
     const getStatusColor = (status: Booking['status']) => {
         switch (status) {
