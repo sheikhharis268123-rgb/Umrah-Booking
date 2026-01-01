@@ -4,6 +4,7 @@ import { BOOKINGS as STATIC_BOOKINGS } from '../constants';
 import { useNotification } from './NotificationProvider';
 import { useHotels } from './HotelContext';
 import { getApiUrl } from '../apiConfig';
+import { useAgency } from './AgencyContext'; // Import useAgency
 
 interface BookingDetails {
     hotel: Hotel | null;
@@ -40,6 +41,7 @@ const BookingContext = createContext<BookingContextType | undefined>(undefined);
 export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { sendNotification } = useNotification();
     const { hotels: dynamicHotels, isLoading: areHotelsLoading } = useHotels();
+    const { agencies } = useAgency(); // Get agencies from context
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [bookingDetails, setBookingDetails] = useState<BookingDetails>(defaultBookingState);
@@ -71,6 +73,8 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             return null;
         }
 
+        const agentProfile = apiBooking.agent_id ? agencies.find(a => a.id === apiBooking.agent_id)?.profile : undefined;
+
         return {
             id: apiBooking.id,
             hotel,
@@ -89,8 +93,10 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             requestedCheckInDate: apiBooking.requested_check_in_date || undefined,
             requestedCheckOutDate: apiBooking.requested_check_out_date || undefined,
             requestedTotalPrice: apiBooking.requested_total_price ? parseFloat(apiBooking.requested_total_price) : undefined,
+            agentDetails: agentProfile,
+            showPriceOnVoucher: apiBooking.show_price_on_voucher ? Boolean(apiBooking.show_price_on_voucher) : undefined,
         };
-    }, [dynamicHotels]);
+    }, [dynamicHotels, agencies]);
 
 
     const fetchBookings = useCallback(async () => {
@@ -132,7 +138,8 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             payment_method: bookingData.paymentMethod,
             promo_code_applied: bookingData.promoCodeApplied || null,
             booking_type: type,
-            customer_id: bookingData.customerId || null,
+            // FIX: Ensure customer_id is sent as an integer if it exists
+            customer_id: bookingData.customerId ? parseInt(bookingData.customerId, 10) : null,
         };
         
         if (type === 'agent-assigned' && bookingData.agentDetails) {
