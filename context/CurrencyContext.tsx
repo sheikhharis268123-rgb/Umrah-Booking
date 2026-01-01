@@ -17,7 +17,6 @@ interface CurrencyContextType {
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
-// FIX: Explicitly typed as React.FC to ensure TS recognizes the 'children' prop when used in JSX tree
 export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [currency, setCurrency] = useState<Currency>('PKR');
 

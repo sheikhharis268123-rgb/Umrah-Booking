@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBooking } from '../context/BookingContext';
 import { useAgent } from '../context/AgentContext';
 import { Booking, Hotel, Room } from '../types';
 import { useCurrency } from '../context/CurrencyContext';
+import { useToast } from '../context/ToastContext';
 
 interface AgentBookingModalProps {
     isOpen: boolean;
@@ -21,6 +23,7 @@ const AgentBookingModal: React.FC<AgentBookingModalProps> = ({ isOpen, onClose, 
     const { agent } = useAgent();
     const { convertPrice } = useCurrency();
     const navigate = useNavigate();
+    const { addToast } = useToast();
 
     const [guestName, setGuestName] = useState('');
     const [guestEmail, setGuestEmail] = useState('');
@@ -36,11 +39,14 @@ const AgentBookingModal: React.FC<AgentBookingModalProps> = ({ isOpen, onClose, 
     const nights = Math.max(1, (new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / (1000 * 3600 * 24));
     const totalPrice = nights * item.room.agentPricePerNight;
 
-    // FIX: The `addBooking` function returns a Promise, so we must `await` its result.
-    // The function is converted to async, and a try/catch/finally block is added for robust error handling.
-    // The incorrect `setTimeout` logic has been removed.
     const handleConfirmBooking = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!guestName.trim() || !guestEmail.trim() || !contactNumber.trim()) {
+            addToast("Please fill in all customer details.", 'error');
+            return;
+        }
+
         setProcessing(true);
 
         const newBooking: Omit<Booking, 'id' | 'status'> = {
@@ -60,10 +66,9 @@ const AgentBookingModal: React.FC<AgentBookingModalProps> = ({ isOpen, onClose, 
         try {
             const confirmedBooking = await addBooking(newBooking, 'agent-assigned');
             onClose();
-            navigate(`/confirmation/${confirmedBooking.id}`);
-        } catch (error) {
-            console.error("Booking assignment failed:", error);
-            alert("Failed to assign booking. Please try again.");
+            navigate(`/confirmation/${confirmedBooking.id}`, { state: { booking: confirmedBooking } });
+        } catch (error: any) {
+            addToast(`Error: ${error.message || 'Could not assign booking.'}`, 'error');
         } finally {
             setProcessing(false);
         }

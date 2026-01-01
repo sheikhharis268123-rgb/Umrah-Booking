@@ -2,8 +2,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { Hotel } from '../types';
 import { HOTELS } from '../constants'; // Kept for fallback on API error
-
-const API_URL = 'https://sandybrown-parrot-500490.hostingersite.com/api.php';
+import { getApiUrl } from '../apiConfig';
 
 interface HotelContextType {
     hotels: Hotel[];
@@ -69,7 +68,7 @@ export const HotelProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const fetchHotels = useCallback(async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(`${API_URL}?endpoint=hotels`);
+            const response = await fetch(getApiUrl('hotels'));
             if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
             if(!Array.isArray(data)) throw new Error("API did not return an array of hotels");
@@ -90,7 +89,7 @@ export const HotelProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const addHotel = async (hotelData: Omit<Hotel, 'id'>) => {
         try {
-            const response = await fetch(`${API_URL}?endpoint=hotels`, {
+            const response = await fetch(getApiUrl('hotels'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(mapLocalHotelToApi(hotelData)),
@@ -107,7 +106,7 @@ export const HotelProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const updateHotel = async (updatedHotel: Hotel) => {
         try {
-            const response = await fetch(`${API_URL}?endpoint=hotels&id=${updatedHotel.id}`, {
+            const response = await fetch(getApiUrl('hotels', { id: updatedHotel.id }), {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(mapLocalHotelToApi(updatedHotel)),
@@ -124,7 +123,7 @@ export const HotelProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const deleteHotel = async (hotelId: number) => {
         try {
-            const response = await fetch(`${API_URL}?endpoint=hotels&id=${hotelId}`, {
+            const response = await fetch(getApiUrl('hotels', { id: hotelId }), {
                 method: 'DELETE',
             });
             const result = await response.json();

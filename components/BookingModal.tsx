@@ -6,6 +6,7 @@ import { Booking, PromoCode } from '../types';
 import { useCurrency } from '../context/CurrencyContext';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const BookingModal: React.FC = () => {
     const { isBookingModalOpen, closeBookingModal, bookingDetails, setBookingDetails, addBooking } = useBooking();
@@ -13,6 +14,7 @@ const BookingModal: React.FC = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const { convertPrice } = useCurrency();
+    const { addToast } = useToast();
 
     const [guestName, setGuestName] = useState('');
     const [guestEmail, setGuestEmail] = useState('');
@@ -25,13 +27,11 @@ const BookingModal: React.FC = () => {
     const [originalPrice, setOriginalPrice] = useState(0);
     
     useEffect(() => {
-        // Pre-fill form if a customer is logged in
         if (user && user.role === 'customer' && user.data) {
-            const customerData = user.data as any; // Customer type
+            const customerData = user.data as any;
             setGuestName(customerData.name);
-            setGuestEmail(customerData.email); // The user's ID is their email in the DB
+            setGuestEmail(customerData.email);
         } else {
-            // Reset if modal opens for a logged-out user
             setGuestName('');
             setGuestEmail('');
         }
@@ -80,6 +80,12 @@ const BookingModal: React.FC = () => {
 
     const handleConfirmBooking = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (!guestName.trim() || !guestEmail.trim() || !contactNumber.trim()) {
+            addToast("Please fill in all guest details.", 'error');
+            return;
+        }
+        
         setProcessing(true);
 
         try {
@@ -93,11 +99,11 @@ const BookingModal: React.FC = () => {
             
             setContactNumber(''); setPromoCode(''); setAppliedPromo(null); setPromoMessage('');
             closeBookingModal();
-            navigate(`/confirmation/${confirmedBooking.id}`);
+            // Pass the new booking object in state to avoid race conditions on the confirmation page
+            navigate(`/confirmation/${confirmedBooking.id}`, { state: { booking: confirmedBooking } });
 
-        } catch (error) {
-            console.error("Failed to confirm booking:", error);
-            alert("There was an error confirming your booking. Please try again.");
+        } catch (error: any) {
+            addToast(`Error: ${error.message || 'Could not confirm booking.'}`, 'error');
         } finally {
             setProcessing(false);
         }

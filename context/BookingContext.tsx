@@ -4,8 +4,7 @@ import { Hotel, Room, Booking } from '../types';
 import { BOOKINGS as STATIC_BOOKINGS } from '../constants';
 import { useNotification } from './NotificationProvider';
 import { useHotels } from './HotelContext';
-
-const API_URL = 'https://sandybrown-parrot-500490.hostingersite.com/api.php'; 
+import { getApiUrl } from '../apiConfig';
 
 interface BookingDetails {
     hotel: Hotel | null;
@@ -87,7 +86,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             return;
         }
         try {
-            const response = await fetch(`${API_URL}?endpoint=bookings`);
+            const response = await fetch(getApiUrl('bookings'));
             if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
             const mappedBookings = data.map(mapApiBookingToLocal).filter((b: Booking | null): b is Booking => b !== null);
@@ -128,7 +127,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
 
         try {
-            const response = await fetch(`${API_URL}?endpoint=bookings`, {
+            const response = await fetch(getApiUrl('bookings'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(apiPayload)
@@ -158,7 +157,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
 
         try {
-            const response = await fetch(`${API_URL}?endpoint=updateBookingStatus`, {
+            const response = await fetch(getApiUrl('updateBookingStatus'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ booking_id: bookingId, status: status })

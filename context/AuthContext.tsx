@@ -2,8 +2,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Agent, Customer } from '../types';
-
-const API_URL = 'https://sandybrown-parrot-500490.hostingersite.com/api.php';
+import { getApiUrl } from '../apiConfig';
 
 type UserRole = 'admin' | 'agent' | 'customer';
 
@@ -55,7 +54,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     try {
-        const response = await fetch(`${API_URL}?endpoint=login`, {
+        const response = await fetch(getApiUrl('login'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: idOrEmail, password: pass, role })
@@ -81,7 +80,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signup = async (name: string, email: string, pass: string): Promise<boolean> => {
     try {
-        const response = await fetch(`${API_URL}?endpoint=signup`, {
+        const response = await fetch(getApiUrl('signup'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, email, password: pass, role: 'customer' })

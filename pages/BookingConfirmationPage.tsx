@@ -1,27 +1,36 @@
 
 import React, { useEffect, useMemo } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useBooking } from '../context/BookingContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { Booking } from '../types';
 
 const BookingConfirmationPage: React.FC = () => {
     const { bookingId } = useParams<{ bookingId: string }>();
     const { bookings } = useBooking();
     const { convertPrice } = useCurrency();
     const navigate = useNavigate();
-    
-    const currentBooking = useMemo(() => bookings.find(b => b.id === bookingId), [bookings, bookingId]);
+    const location = useLocation();
+
+    // Prioritize booking data passed directly via navigation state to avoid race conditions.
+    // Fallback to searching the global bookings list.
+    const newBookingFromState = (location.state as { booking: Booking })?.booking;
+    const currentBooking = useMemo(() => newBookingFromState || bookings.find(b => b.id === bookingId), [newBookingFromState, bookings, bookingId]);
 
     useEffect(() => {
         window.scrollTo(0, 0);
+        // If booking data isn't available immediately or after context updates, redirect home.
         if (!currentBooking) {
-            // If booking not found after a short delay (to allow context to update), redirect.
-            const timer = setTimeout(() => navigate('/'), 1000);
+            const timer = setTimeout(() => {
+                if (!bookings.find(b => b.id === bookingId)) {
+                    navigate('/');
+                }
+            }, 1500);
             return () => clearTimeout(timer);
         }
-    }, [currentBooking, navigate]);
+    }, [currentBooking, bookings, bookingId, navigate]);
 
     if (!currentBooking) {
         return (
