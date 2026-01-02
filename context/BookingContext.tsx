@@ -54,22 +54,11 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             return null;
         }
         
-        const room = hotel.rooms.find(r => {
-            const apiRoomIdStr = String(apiBooking.room_id);
-            if (r.id === apiRoomIdStr) {
-                return true;
-            }
-            const localRoomIdParts = r.id.split('-');
-            if (localRoomIdParts.length === 2 && 
-                localRoomIdParts[0] === String(hotel.id) && 
-                localRoomIdParts[1] === apiRoomIdStr) {
-                return true;
-            }
-            return false;
-        });
+        const uniqueRoomId = `${apiBooking.hotel_id}-${apiBooking.room_id}`;
+        const room = hotel.rooms.find(r => r.id === uniqueRoomId);
 
         if (!room) {
-            console.error(`[mapApiBookingToLocal] Room not found for room_id: ${apiBooking.room_id} in hotel ${hotel.name}`);
+            console.error(`[mapApiBookingToLocal] Room not found for generated unique ID: ${uniqueRoomId} in hotel ${hotel.name}`);
             return null;
         }
 

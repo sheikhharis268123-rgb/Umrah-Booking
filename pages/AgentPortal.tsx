@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
@@ -98,7 +97,7 @@ const AgentPortal: React.FC = () => {
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-primary mb-4">Welcome, {agent?.profile.agencyName}!</h2>
+            <h2 className="text-xl font-semibold text-primary mb-4">Welcome, {agent?.profile?.agencyName}!</h2>
             <p className="text-gray-600">
                 This is your central hub for managing hotel bookings for your clients. 
                 You can create new bulk orders or view and manage your existing agency bookings using the sections above.

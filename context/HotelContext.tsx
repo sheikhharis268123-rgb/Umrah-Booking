@@ -28,7 +28,7 @@ const mapApiHotelToLocal = (apiHotel: any): Hotel => ({
   description: apiHotel.description,
   amenities: Array.isArray(apiHotel.amenities) ? apiHotel.amenities : JSON.parse(apiHotel.amenities || '[]'),
   rooms: Array.isArray(apiHotel.rooms) ? apiHotel.rooms.map((r: any) => ({
-      id: r.id.toString(),
+      id: `${apiHotel.id}-${r.id}`,
       type: r.type,
       purchasePricePerNight: Number(r.purchase_price_per_night),
       agentPricePerNight: Number(r.agent_price_per_night),
