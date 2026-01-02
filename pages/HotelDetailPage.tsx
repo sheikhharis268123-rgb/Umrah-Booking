@@ -1,8 +1,8 @@
 
 
 import React, { useEffect } from 'react';
-// Fix: Use useHistory instead of useNavigate for react-router-dom v5 compatibility.
-import { useParams, Link, useHistory, useLocation } from 'react-router-dom';
+// Fix: Use useNavigate instead of useHistory for react-router-dom v6 compatibility.
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StarRating from '../components/StarRating';
@@ -22,8 +22,8 @@ const HotelDetailPage: React.FC = () => {
     const { convertPrice } = useCurrency();
     const { user } = useAuth();
     const { addToast } = useToast();
-    // Fix: Use useHistory instead of useNavigate.
-    const history = useHistory();
+    // Fix: Use useNavigate instead of useHistory.
+    const navigate = useNavigate();
     const location = useLocation();
 
     useEffect(() => {
@@ -53,8 +53,8 @@ const HotelDetailPage: React.FC = () => {
             openBookingModal(hotel, room);
         } else {
             addToast('Please log in to book a room.', 'info');
-            // Fix: Use history.push instead of navigate.
-            history.push('/login', { from: location });
+            // Fix: Use navigate instead of history.push.
+            navigate('/login', { state: { from: location } });
         }
     };
 

@@ -1,8 +1,8 @@
 
 
 import React, { useState } from 'react';
-// Fix: Use useHistory instead of useNavigate for react-router-dom v5 compatibility.
-import { useHistory, useLocation, Link } from 'react-router-dom';
+// Fix: Use useNavigate instead of useHistory for react-router-dom v6 compatibility.
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { useToast } from '../context/ToastContext';
@@ -14,8 +14,8 @@ const CustomerLoginPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const { login } = useAuth();
     const { addToast } = useToast();
-    // Fix: Use useHistory instead of useNavigate.
-    const history = useHistory();
+    // Fix: Use useNavigate instead of useHistory.
+    const navigate = useNavigate();
     const location = useLocation();
     const { websiteName } = useSettings();
 
@@ -31,8 +31,8 @@ const CustomerLoginPage: React.FC = () => {
         setIsLoading(false);
         if (success) {
             addToast('Login successful!', 'success');
-            // Fix: Use history.replace instead of navigate.
-            history.replace(from);
+            // Fix: Use navigate with replace option.
+            navigate(from, { replace: true });
         } else {
             setError('Invalid email or password.');
         }

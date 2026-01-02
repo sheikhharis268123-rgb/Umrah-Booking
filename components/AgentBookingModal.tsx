@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-// Fix: Use useHistory instead of useNavigate for react-router-dom v5 compatibility.
-import { useHistory } from 'react-router-dom';
+// Fix: Use useNavigate instead of useHistory for react-router-dom v6 compatibility.
+import { useNavigate } from 'react-router-dom';
 import { useBooking } from '../context/BookingContext';
 import { useAgent } from '../context/AgentContext';
 import { Booking, Hotel, Room } from '../types';
@@ -22,8 +22,8 @@ const AgentBookingModal: React.FC<AgentBookingModalProps> = ({ isOpen, onClose, 
     const { addBooking } = useBooking();
     const { agent } = useAgent();
     const { convertPrice } = useCurrency();
-    // Fix: Use useHistory instead of useNavigate.
-    const history = useHistory();
+    // Fix: Use useNavigate instead of useHistory.
+    const navigate = useNavigate();
     const { addToast } = useToast();
 
     const [guestName, setGuestName] = useState('');
@@ -71,8 +71,8 @@ const AgentBookingModal: React.FC<AgentBookingModalProps> = ({ isOpen, onClose, 
             onClose();
             
             // Navigate directly on success. addBooking will throw an error on failure, which is caught below.
-            // Fix: Use history.push instead of navigate.
-            history.push(`/confirmation/${confirmedBooking.id}`, { booking: confirmedBooking, userRole: 'agent' });
+            // Fix: Use navigate instead of history.push.
+            navigate(`/confirmation/${confirmedBooking.id}`, { state: { booking: confirmedBooking, userRole: 'agent' } });
 
         } catch (error: any) {
             addToast(`Error: ${error.message || 'Could not assign booking.'}`, 'error');

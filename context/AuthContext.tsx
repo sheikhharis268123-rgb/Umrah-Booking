@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-// Fix: Use useHistory instead of useNavigate for react-router-dom v5 compatibility.
-import { useHistory } from 'react-router-dom';
+// Fix: Use useNavigate instead of useHistory for react-router-dom v6 compatibility.
+import { useNavigate } from 'react-router-dom';
 import { Agent, Customer } from '../types';
 import { API_BASE_URL } from '../apiConfig';
 
@@ -25,8 +25,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  // Fix: Use useHistory instead of useNavigate.
-  const history = useHistory();
+  // Fix: Use useNavigate instead of useHistory.
+  const navigate = useNavigate();
 
   useEffect(() => {
     try {
@@ -102,13 +102,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
     localStorage.removeItem('user');
     
-    // Fix: Use history.push instead of navigate.
+    // Fix: Use navigate instead of history.push.
     if (role === 'admin') {
-        history.push('/admin/login');
+        navigate('/admin/login');
     } else if (role === 'agent') {
-        history.push('/agent/login');
+        navigate('/agent/login');
     } else {
-        history.push('/login');
+        navigate('/login');
     }
   };
 

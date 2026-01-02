@@ -1,8 +1,8 @@
 
 
 import React, { useState } from 'react';
-// Fix: Use useHistory instead of useNavigate for react-router-dom v5 compatibility.
-import { useHistory, useLocation } from 'react-router-dom';
+// Fix: Use useNavigate instead of useHistory for react-router-dom v6 compatibility.
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 
@@ -11,8 +11,8 @@ const AgentLoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const { login } = useAuth();
-    // Fix: Use useHistory instead of useNavigate.
-    const history = useHistory();
+    // Fix: Use useNavigate instead of useHistory.
+    const navigate = useNavigate();
     const location = useLocation();
     const { websiteName } = useSettings();
 
@@ -23,8 +23,8 @@ const AgentLoginPage: React.FC = () => {
         setError('');
 
         if (await login(agencyId, password, 'agent')) {
-            // Fix: Use history.replace instead of navigate.
-            history.replace(from);
+            // Fix: Use navigate with replace option.
+            navigate(from, { replace: true });
         } else {
             setError('Invalid Agency ID or Password. Please try again.');
         }

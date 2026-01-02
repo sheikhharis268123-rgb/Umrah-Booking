@@ -2,7 +2,6 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-// Fix: Use namespace import for react-router-dom
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { BookingProvider } from './context/BookingContext';
@@ -27,7 +26,6 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    {/* Fix: Changed HashRouter to BrowserRouter which is more common and might resolve specific export issues. */}
     <BrowserRouter>
       <ToastProvider>
         <NotificationProvider>

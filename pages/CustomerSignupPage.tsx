@@ -1,8 +1,8 @@
 
 
 import React, { useState } from 'react';
-// Fix: Use useHistory instead of useNavigate for react-router-dom v5 compatibility.
-import { useHistory, Link } from 'react-router-dom';
+// Fix: Use useNavigate instead of useHistory for react-router-dom v6 compatibility.
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { useToast } from '../context/ToastContext';
@@ -15,8 +15,8 @@ const CustomerSignupPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const { signup, login } = useAuth();
     const { addToast } = useToast();
-    // Fix: Use useHistory instead of useNavigate.
-    const history = useHistory();
+    // Fix: Use useNavigate instead of useHistory.
+    const navigate = useNavigate();
     const { websiteName } = useSettings();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -31,11 +31,11 @@ const CustomerSignupPage: React.FC = () => {
                 // Automatically log in the user after successful signup
                 const loginSuccess = await login(email, password, 'customer');
                 if (loginSuccess) {
-                    // Fix: Use history.replace instead of navigate.
-                    history.replace('/my-bookings');
+                    // Fix: Use navigate with replace option.
+                    navigate('/my-bookings', { replace: true });
                 } else {
-                     // Fix: Use history.push instead of navigate.
-                     history.push('/login');
+                     // Fix: Use navigate.
+                     navigate('/login');
                 }
             }
         } catch (err: any) {

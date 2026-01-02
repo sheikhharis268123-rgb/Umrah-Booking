@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-// Fix: Use useLocation instead of useSearchParams for react-router-dom v5 compatibility.
+// Fix: Use useLocation to parse search parameters for react-router-dom v5 compatibility.
 import { Link, useLocation } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { useBooking } from '../context/BookingContext';
@@ -20,7 +20,7 @@ const AdminBookingsPage: React.FC = () => {
     const { agencies } = useAgency();
     const { convertPrice } = useCurrency();
     const { addToast } = useToast();
-    // Fix: Use useLocation to parse search params for v5 compatibility.
+    // Fix: Use useLocation to parse search params for v6 compatibility.
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
     const [isRefreshing, setIsRefreshing] = useState(false);

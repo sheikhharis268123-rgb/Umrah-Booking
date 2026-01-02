@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-// Fix: Use useHistory instead of useNavigate for react-router-dom v5 compatibility.
-import { useHistory } from 'react-router-dom';
+// Fix: Use useNavigate instead of useHistory for react-router-dom v6 compatibility.
+import { useNavigate } from 'react-router-dom';
 import { useBooking } from '../context/BookingContext';
 import { Booking, PromoCode } from '../types';
 import { useCurrency } from '../context/CurrencyContext';
@@ -12,8 +12,8 @@ const BookingModal: React.FC = () => {
     const { isBookingModalOpen, closeBookingModal, bookingDetails, setBookingDetails, addBooking } = useBooking();
     const { promoCodes } = useSettings();
     const { user } = useAuth();
-    // Fix: Use useHistory instead of useNavigate.
-    const history = useHistory();
+    // Fix: Use useNavigate instead of useHistory.
+    const navigate = useNavigate();
     const { convertPrice } = useCurrency();
     const { addToast } = useToast();
 
@@ -102,8 +102,8 @@ const BookingModal: React.FC = () => {
             closeBookingModal();
             
             // Navigate with the new booking which will have a "Pending" status by default
-            // Fix: Use history.push instead of navigate.
-            history.push(`/confirmation/${newBooking.id}`, { booking: newBooking });
+            // Fix: Use navigate instead of history.push.
+            navigate(`/confirmation/${newBooking.id}`, { state: { booking: newBooking } });
 
         } catch (error: any) {
             addToast(`Error: ${error.message || 'Could not confirm booking.'}`, 'error');

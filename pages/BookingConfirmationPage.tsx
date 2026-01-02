@@ -1,8 +1,8 @@
 
 
 import React, { useEffect, useMemo } from 'react';
-// Fix: Use useHistory instead of useNavigate for react-router-dom v5 compatibility.
-import { Link, useParams, useHistory, useLocation } from 'react-router-dom';
+// Fix: Use useNavigate instead of useHistory for react-router-dom v6 compatibility.
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useBooking } from '../context/BookingContext';
@@ -13,8 +13,8 @@ const BookingConfirmationPage: React.FC = () => {
     const { bookingId } = useParams<{ bookingId: string }>();
     const { bookings } = useBooking();
     const { convertPrice } = useCurrency();
-    // Fix: Use useHistory instead of useNavigate.
-    const history = useHistory();
+    // Fix: Use useNavigate instead of useHistory.
+    const navigate = useNavigate();
     const location = useLocation();
 
     // Prioritize booking data passed directly via navigation state to avoid race conditions.
@@ -33,13 +33,13 @@ const BookingConfirmationPage: React.FC = () => {
         if (!currentBooking) {
             const timer = setTimeout(() => {
                 if (!bookings.find(b => b.id === bookingId)) {
-                    // Fix: Use history.push instead of navigate.
-                    history.push('/');
+                    // Fix: Use navigate instead of history.push.
+                    navigate('/');
                 }
             }, 1500);
             return () => clearTimeout(timer);
         }
-    }, [currentBooking, bookings, bookingId, history]);
+    }, [currentBooking, bookings, bookingId, navigate]);
 
     if (!currentBooking) {
         return (
