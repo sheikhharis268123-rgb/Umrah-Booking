@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { useSettings } from '../context/SettingsContext';
@@ -99,14 +98,14 @@ const AdminSettingsPage: React.FC = () => {
                             </div>
                         </div>
                         <div className="md:col-span-2">
-                            <label htmlFor="announcement" className="block text-sm font-medium text-gray-700">Website Announcement</label>
+                            <label htmlFor="announcement" className="block text-sm font-medium text-gray-700">Website Announcement (use "|" to separate multiple messages)</label>
                             <textarea 
                                 id="announcement"
                                 value={currentAnnouncement}
                                 onChange={(e) => setCurrentAnnouncement(e.target.value)}
                                 rows={2}
                                 className={inputStyle}
-                                placeholder="e.g., 'Booking is now open for Ramadan'"
+                                placeholder="e.g., 'Booking is now open for Ramadan | Special discounts available'"
                             />
                         </div>
                     </div>

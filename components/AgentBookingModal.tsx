@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBooking } from '../context/BookingContext';
@@ -19,7 +18,7 @@ interface AgentBookingModalProps {
 }
 
 const AgentBookingModal: React.FC<AgentBookingModalProps> = ({ isOpen, onClose, item }) => {
-    const { addBooking } = useBooking();
+    const { addBooking, updateBookingStatusAndNotify } = useBooking();
     const { agent } = useAgent();
     const { convertPrice } = useCurrency();
     const navigate = useNavigate();
@@ -64,7 +63,11 @@ const AgentBookingModal: React.FC<AgentBookingModalProps> = ({ isOpen, onClose, 
         };
         
         try {
-            const confirmedBooking = await addBooking(newBooking, 'agent-assigned');
+            const pendingBooking = await addBooking(newBooking, 'agent-assigned');
+            // Agent-assigned bookings from confirmed bulk orders should be auto-confirmed.
+            await updateBookingStatusAndNotify(pendingBooking.id, 'Confirmed');
+            const confirmedBooking = { ...pendingBooking, status: 'Confirmed' as 'Confirmed' };
+
             onClose();
             navigate(`/confirmation/${confirmedBooking.id}`, { state: { booking: confirmedBooking } });
         } catch (error: any) {

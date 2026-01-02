@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBooking } from '../context/BookingContext';
@@ -9,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 const BookingModal: React.FC = () => {
-    const { isBookingModalOpen, closeBookingModal, bookingDetails, setBookingDetails, addBooking } = useBooking();
+    const { isBookingModalOpen, closeBookingModal, bookingDetails, setBookingDetails, addBooking, updateBookingStatusAndNotify } = useBooking();
     const { promoCodes } = useSettings();
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -95,11 +94,15 @@ const BookingModal: React.FC = () => {
                 totalPrice: bookingDetails.totalPrice, paymentMethod: 'Online', promoCodeApplied: appliedPromo?.code,
                 customerId: user && user.role === 'customer' ? user.id : undefined,
             };
-            const confirmedBooking = await addBooking(newBookingData, 'customer');
+            const pendingBooking = await addBooking(newBookingData, 'customer');
+            
+            // Auto-confirm customer booking to simulate successful payment and immediate confirmation
+            await updateBookingStatusAndNotify(pendingBooking.id, 'Confirmed');
+            const confirmedBooking = { ...pendingBooking, status: 'Confirmed' as 'Confirmed' };
             
             setContactNumber(''); setPromoCode(''); setAppliedPromo(null); setPromoMessage('');
             closeBookingModal();
-            // Pass the new booking object in state to avoid race conditions on the confirmation page
+            
             navigate(`/confirmation/${confirmedBooking.id}`, { state: { booking: confirmedBooking } });
 
         } catch (error: any) {

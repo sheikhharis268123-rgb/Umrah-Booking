@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { useAgent } from '../context/AgentContext';
@@ -18,6 +17,17 @@ const AgentSettingsPage: React.FC = () => {
             setFormData(agent.profile);
         }
     }, [agent]);
+    
+    if (agent && agent.status === 'Inactive') {
+        return (
+            <DashboardLayout portal="agent">
+                <div className="bg-white p-8 rounded-lg shadow-md text-center">
+                    <h1 className="text-2xl font-bold text-red-600">Account Inactive</h1>
+                    <p className="text-gray-600 mt-2">Your agency account is currently inactive. Please contact administration for assistance.</p>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     const inputStyle = "mt-1 block w-full p-2.5 bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-primary focus:border-primary transition duration-300";
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { useBooking } from '../context/BookingContext';
@@ -23,6 +22,12 @@ const ProfitIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 
 
 type TimeFilter = 'today' | 'week' | 'month' | 'year';
 
+// Helper function for safe date parsing in local timezone
+const parseDate = (dateString: string) => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+};
+
 const AdminFinancialsPage: React.FC = () => {
     const { bookings } = useBooking();
     const { convertPrice } = useCurrency();
@@ -38,7 +43,7 @@ const AdminFinancialsPage: React.FC = () => {
 
         return bookings.filter(b => {
             if (b.status !== 'Confirmed') return false;
-            const checkInDate = new Date(b.checkInDate);
+            const checkInDate = parseDate(b.checkInDate);
             switch (timeFilter) {
                 case 'today': return checkInDate >= startOfToday;
                 case 'week': return checkInDate >= startOfWeek;
@@ -54,7 +59,8 @@ const AdminFinancialsPage: React.FC = () => {
         let totalCost = 0;
 
         filteredBookings.forEach(booking => {
-            const nights = (new Date(booking.checkOutDate).getTime() - new Date(booking.checkInDate).getTime()) / (1000 * 3600 * 24);
+            const nights = Math.round((parseDate(booking.checkOutDate).getTime() - parseDate(booking.checkInDate).getTime()) / (1000 * 3600 * 24));
+            if (nights <= 0) return;
             totalSales += booking.totalPrice;
             totalCost += nights * booking.room.purchasePricePerNight;
         });
@@ -62,13 +68,6 @@ const AdminFinancialsPage: React.FC = () => {
         const netRevenue = totalSales - totalCost;
         return { totalSales, totalCost, netRevenue };
     }, [filteredBookings]);
-
-    const getTransactionProfit = (booking: Booking) => {
-        const nights = (new Date(booking.checkOutDate).getTime() - new Date(booking.checkInDate).getTime()) / (1000 * 3600 * 24);
-        const cost = nights * booking.room.purchasePricePerNight;
-        return booking.totalPrice - cost;
-    };
-
 
     return (
         <DashboardLayout portal="admin">
@@ -108,7 +107,7 @@ const AdminFinancialsPage: React.FC = () => {
                         </thead>
                          <tbody className="bg-white divide-y divide-gray-200">
                             {filteredBookings.map(booking => {
-                                const nights = (new Date(booking.checkOutDate).getTime() - new Date(booking.checkInDate).getTime()) / (1000 * 3600 * 24);
+                                const nights = Math.round((parseDate(booking.checkOutDate).getTime() - parseDate(booking.checkInDate).getTime()) / (1000 * 3600 * 24));
                                 const cost = nights * booking.room.purchasePricePerNight;
                                 const profit = booking.totalPrice - cost;
 
