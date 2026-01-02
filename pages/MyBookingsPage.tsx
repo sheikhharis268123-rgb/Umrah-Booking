@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -27,7 +26,7 @@ const MyBookingsPage: React.FC = () => {
             // Match by the customer ID stored in the booking
             b.customerId === customerId ||
             // Fallback: match by email if customer ID is not present (e.g., for bookings made before signing up)
-            (customerEmail && !b.customerId && b.guestEmail.toLowerCase() === customerEmail.toLowerCase())
+            (customerEmail && !b.customerId && b.guestEmail && b.guestEmail.toLowerCase() === customerEmail.toLowerCase())
         );
     }, [bookings, user]);
 

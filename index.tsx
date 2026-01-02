@@ -1,7 +1,9 @@
 
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { HashRouter } from 'react-router-dom';
+// Fix: Use namespace import for react-router-dom
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { BookingProvider } from './context/BookingContext';
 import { HotelProvider } from './context/HotelContext';
@@ -25,7 +27,8 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <HashRouter>
+    {/* Fix: Changed HashRouter to BrowserRouter which is more common and might resolve specific export issues. */}
+    <BrowserRouter>
       <ToastProvider>
         <NotificationProvider>
           <InfoProvider>
@@ -53,6 +56,6 @@ root.render(
           </InfoProvider>
         </NotificationProvider>
       </ToastProvider>
-    </HashRouter>
+    </BrowserRouter>
   </React.StrictMode>
 );

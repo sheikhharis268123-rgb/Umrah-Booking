@@ -1,5 +1,6 @@
 import React, { ReactElement } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+// Fix: Use Redirect instead of Navigate for react-router-dom v5 compatibility.
+import { Redirect, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface ProtectedRouteProps {
@@ -28,7 +29,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, role }) => {
     // Redirect them to the login page, but save the current location they were
     // trying to go to. This allows us to send them along to that page after they login,
     // which is a nicer user experience than dropping them off on the home page.
-    return <Navigate to={loginPath} state={{ from: location }} replace />;
+    // Fix: Use Redirect component with object syntax for 'to' prop for v5.
+    return <Redirect to={{ pathname: loginPath, state: { from: location } }} />;
   }
 
   return children;

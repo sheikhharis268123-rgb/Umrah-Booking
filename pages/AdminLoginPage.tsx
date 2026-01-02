@@ -1,6 +1,8 @@
 
+
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+// Fix: Use useHistory instead of useNavigate for react-router-dom v5 compatibility.
+import { useHistory, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 
@@ -9,18 +11,20 @@ const AdminLoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const { login } = useAuth();
-    const navigate = useNavigate();
+    // Fix: Use useHistory instead of useNavigate.
+    const history = useHistory();
     const location = useLocation();
     const { websiteName } = useSettings();
 
-    const from = location.state?.from?.pathname || '/admin';
+    const from = (location.state as any)?.from?.pathname || '/admin';
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
-        if (login(userId, password, 'admin')) {
-            navigate(from, { replace: true });
+        if (await login(userId, password, 'admin')) {
+            // Fix: Use history.replace instead of navigate.
+            history.replace(from);
         } else {
             setError('Invalid credentials. Please try again.');
         }

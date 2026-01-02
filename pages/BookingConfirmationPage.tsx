@@ -1,5 +1,8 @@
+
+
 import React, { useEffect, useMemo } from 'react';
-import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
+// Fix: Use useHistory instead of useNavigate for react-router-dom v5 compatibility.
+import { Link, useParams, useHistory, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useBooking } from '../context/BookingContext';
@@ -10,7 +13,8 @@ const BookingConfirmationPage: React.FC = () => {
     const { bookingId } = useParams<{ bookingId: string }>();
     const { bookings } = useBooking();
     const { convertPrice } = useCurrency();
-    const navigate = useNavigate();
+    // Fix: Use useHistory instead of useNavigate.
+    const history = useHistory();
     const location = useLocation();
 
     // Prioritize booking data passed directly via navigation state to avoid race conditions.
@@ -29,12 +33,13 @@ const BookingConfirmationPage: React.FC = () => {
         if (!currentBooking) {
             const timer = setTimeout(() => {
                 if (!bookings.find(b => b.id === bookingId)) {
-                    navigate('/');
+                    // Fix: Use history.push instead of navigate.
+                    history.push('/');
                 }
             }, 1500);
             return () => clearTimeout(timer);
         }
-    }, [currentBooking, bookings, bookingId, navigate]);
+    }, [currentBooking, bookings, bookingId, history]);
 
     if (!currentBooking) {
         return (
@@ -70,20 +75,20 @@ const BookingConfirmationPage: React.FC = () => {
                         <h1 className="text-3xl font-bold text-primary mb-2">{isConfirmed ? 'Booking Confirmed!' : 'Booking Received!'}</h1>
                         <p className="text-gray-600 mb-6">
                             {isConfirmed 
-                                ? `Thank you, ${guestName}. Your booking is complete. A confirmation email has been sent.`
-                                : `Thank you, ${guestName}. Your booking request is pending approval. You will receive an email once it's confirmed.`
+                                ? `Thank you, ${guestName || 'Valued Customer'}. Your booking is complete. A confirmation email has been sent.`
+                                : `Thank you, ${guestName || 'Valued Customer'}. Your booking request is pending approval. You will receive an email once it's confirmed.`
                             }
                         </p>
                         
                         <div className="text-left border-t border-b py-6 space-y-4">
                             <p><strong>Booking ID:</strong> <span className="font-mono text-secondary">{id}</span></p>
-                            <h2 className="text-xl font-semibold text-primary border-t pt-4 mt-4">{hotel.name}</h2>
-                            <p><strong>Room:</strong> {room.type}</p>
+                            <h2 className="text-xl font-semibold text-primary border-t pt-4 mt-4">{hotel?.name || 'Hotel details missing'}</h2>
+                            <p><strong>Room:</strong> {room?.type || 'N/A'}</p>
                             <div className="grid grid-cols-2 gap-4">
-                                <p><strong>Check-in:</strong> {new Date(checkInDate).toLocaleDateString()}</p>
-                                <p><strong>Check-out:</strong> {new Date(checkOutDate).toLocaleDateString()}</p>
+                                <p><strong>Check-in:</strong> {checkInDate ? new Date(checkInDate).toLocaleDateString() : 'N/A'}</p>
+                                <p><strong>Check-out:</strong> {checkOutDate ? new Date(checkOutDate).toLocaleDateString() : 'N/A'}</p>
                             </div>
-                            <p className="text-2xl font-bold text-right border-t pt-4 mt-4">Total: <span className="text-primary">{convertPrice(totalPrice)}</span></p>
+                            <p className="text-2xl font-bold text-right border-t pt-4 mt-4">Total: <span className="text-primary">{typeof totalPrice === 'number' ? convertPrice(totalPrice) : 'N/A'}</span></p>
                         </div>
 
                         <div className="mt-8 flex justify-center space-x-4">

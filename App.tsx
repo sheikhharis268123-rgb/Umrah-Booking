@@ -1,6 +1,8 @@
 
+
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+// Fix: Use Switch and Route from react-router-dom v5 syntax.
+import { Switch, Route } from 'react-router-dom';
 import CustomerPortal from './pages/CustomerPortal';
 import AdminPortal from './pages/AdminPortal';
 import AgentPortal from './pages/AgentPortal';
@@ -36,42 +38,43 @@ function App() {
   return (
       <div className="bg-neutral-light min-h-screen font-sans text-neutral-dark">
         <ToastContainer />
-        <Routes>
+        {/* Fix: Use Switch instead of Routes and children instead of element prop for Route. */}
+        <Switch>
           {/* Customer Routes */}
-          <Route path="/" element={<CustomerPortal />} />
-          <Route path="/hotel/:hotelId" element={<HotelDetailPage />} />
-          <Route path="/hotels" element={<AllHotelsPage />} />
-          <Route path="/confirmation/:bookingId" element={<BookingConfirmationPage />} />
-          <Route path="/my-bookings" element={<ProtectedRoute role="customer"><MyBookingsPage /></ProtectedRoute>} />
-          <Route path="/voucher/:bookingId" element={<VoucherPage />} />
-          <Route path="/track-booking" element={<TrackBookingPage />} />
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="/login" element={<CustomerLoginPage />} />
-          <Route path="/signup" element={<CustomerSignupPage />} />
+          <Route path="/" exact><CustomerPortal /></Route>
+          <Route path="/hotel/:hotelId"><HotelDetailPage /></Route>
+          <Route path="/hotels"><AllHotelsPage /></Route>
+          <Route path="/confirmation/:bookingId"><BookingConfirmationPage /></Route>
+          <Route path="/my-bookings"><ProtectedRoute role="customer"><MyBookingsPage /></ProtectedRoute></Route>
+          <Route path="/voucher/:bookingId"><VoucherPage /></Route>
+          <Route path="/track-booking"><TrackBookingPage /></Route>
+          <Route path="/support"><SupportPage /></Route>
+          <Route path="/login"><CustomerLoginPage /></Route>
+          <Route path="/signup"><CustomerSignupPage /></Route>
 
           {/* Auth Routes */}
-          <Route path="/admin/login" element={<AdminLoginPage />} />
-          <Route path="/agent/login" element={<AgentLoginPage />} />
+          <Route path="/admin/login"><AdminLoginPage /></Route>
+          <Route path="/agent/login"><AgentLoginPage /></Route>
           
           {/* Admin Routes */}
-          <Route path="/admin" element={<ProtectedRoute role="admin"><AdminPortal /></ProtectedRoute>} />
-          <Route path="/admin/hotels" element={<ProtectedRoute role="admin"><AdminHotelsPage /></ProtectedRoute>} />
-          <Route path="/admin/bookings" element={<ProtectedRoute role="admin"><AdminBookingsPage /></ProtectedRoute>} />
-          <Route path="/admin/requests" element={<ProtectedRoute role="admin"><AdminRequestsPage /></ProtectedRoute>} />
-          <Route path="/admin/bulk-orders" element={<ProtectedRoute role="admin"><AdminBulkOrdersPage /></ProtectedRoute>} />
-          <Route path="/admin/agencies" element={<ProtectedRoute role="admin"><AdminAgenciesPage /></ProtectedRoute>} />
-          <Route path="/admin/invoices" element={<ProtectedRoute role="admin"><AdminInvoicesPage /></ProtectedRoute>} />
-          <Route path="/admin/financials" element={<ProtectedRoute role="admin"><AdminFinancialsPage /></ProtectedRoute>} />
-          <Route path="/admin/notifications" element={<ProtectedRoute role="admin"><AdminNotificationsPage /></ProtectedRoute>} />
-          <Route path="/admin/settings" element={<ProtectedRoute role="admin"><AdminSettingsPage /></ProtectedRoute>} />
-          <Route path="/admin/voucher/:bookingId" element={<ProtectedRoute role="admin"><AdminVoucherPage /></ProtectedRoute>} />
+          <Route path="/admin" exact><ProtectedRoute role="admin"><AdminPortal /></ProtectedRoute></Route>
+          <Route path="/admin/hotels"><ProtectedRoute role="admin"><AdminHotelsPage /></ProtectedRoute></Route>
+          <Route path="/admin/bookings"><ProtectedRoute role="admin"><AdminBookingsPage /></ProtectedRoute></Route>
+          <Route path="/admin/requests"><ProtectedRoute role="admin"><AdminRequestsPage /></ProtectedRoute></Route>
+          <Route path="/admin/bulk-orders"><ProtectedRoute role="admin"><AdminBulkOrdersPage /></ProtectedRoute></Route>
+          <Route path="/admin/agencies"><ProtectedRoute role="admin"><AdminAgenciesPage /></ProtectedRoute></Route>
+          <Route path="/admin/invoices"><ProtectedRoute role="admin"><AdminInvoicesPage /></ProtectedRoute></Route>
+          <Route path="/admin/financials"><ProtectedRoute role="admin"><AdminFinancialsPage /></ProtectedRoute></Route>
+          <Route path="/admin/notifications"><ProtectedRoute role="admin"><AdminNotificationsPage /></ProtectedRoute></Route>
+          <Route path="/admin/settings"><ProtectedRoute role="admin"><AdminSettingsPage /></ProtectedRoute></Route>
+          <Route path="/admin/voucher/:bookingId"><ProtectedRoute role="admin"><AdminVoucherPage /></ProtectedRoute></Route>
 
           {/* Agent Routes */}
-          <Route path="/agent" element={<ProtectedRoute role="agent"><AgentPortal /></ProtectedRoute>} />
-          <Route path="/agent/bulk-booking" element={<ProtectedRoute role="agent"><AgentBulkBookingPage /></ProtectedRoute>} />
-          <Route path="/agent/my-bookings" element={<ProtectedRoute role="agent"><AgentMyBookingsPage /></ProtectedRoute>} />
-          <Route path="/agent/settings" element={<ProtectedRoute role="agent"><AgentSettingsPage /></ProtectedRoute>} />
-        </Routes>
+          <Route path="/agent" exact><ProtectedRoute role="agent"><AgentPortal /></ProtectedRoute></Route>
+          <Route path="/agent/bulk-booking"><ProtectedRoute role="agent"><AgentBulkBookingPage /></ProtectedRoute></Route>
+          <Route path="/agent/my-bookings"><ProtectedRoute role="agent"><AgentMyBookingsPage /></ProtectedRoute></Route>
+          <Route path="/agent/settings"><ProtectedRoute role="agent"><AgentSettingsPage /></ProtectedRoute></Route>
+        </Switch>
       </div>
   );
 }

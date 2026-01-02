@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+// Fix: Use useLocation instead of useSearchParams for react-router-dom v5 compatibility.
+import { Link, useLocation } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { useBooking } from '../context/BookingContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -19,7 +20,9 @@ const AdminBookingsPage: React.FC = () => {
     const { agencies } = useAgency();
     const { convertPrice } = useCurrency();
     const { addToast } = useToast();
-    const [searchParams] = useSearchParams();
+    // Fix: Use useLocation to parse search params for v5 compatibility.
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const [filterBookingId, setFilterBookingId] = useState('');
