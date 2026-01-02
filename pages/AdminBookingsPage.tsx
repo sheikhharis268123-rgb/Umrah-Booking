@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
@@ -55,10 +54,20 @@ const AdminBookingsPage: React.FC = () => {
 
     const filteredBookings = useMemo(() => {
         return bookings.filter(booking => {
-            const matchesAgency = !agencyIdFilter || booking.agentDetails?.agencyId === agencyIdFilter;
             const matchesBookingId = !filterBookingId || booking.id.toLowerCase().includes(filterBookingId.toLowerCase());
             const matchesGuestName = !filterGuestName || booking.guestName.toLowerCase().includes(filterGuestName.toLowerCase());
-            return matchesAgency && matchesBookingId && matchesGuestName;
+
+            if (!matchesBookingId || !matchesGuestName) {
+                return false;
+            }
+
+            // If an agency filter is active, show all bookings for that agency.
+            if (agencyIdFilter) {
+                return booking.agentDetails?.agencyId === agencyIdFilter;
+            }
+
+            // If no agency filter, hide all agent-assigned bookings from the main view.
+            return booking.bookingType !== 'agent-assigned';
         });
     }, [bookings, agencyIdFilter, filterBookingId, filterGuestName]);
 
@@ -104,8 +113,11 @@ const AdminBookingsPage: React.FC = () => {
         <DashboardLayout portal="admin">
             <div className="flex justify-between items-center mb-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-primary">{agencyIdFilter ? `${agencyName}'s Bookings` : 'All Bookings'}</h1>
-                    {agencyIdFilter && <Link to="/admin/bookings" className="text-sm text-primary hover:underline">Clear Agency Filter</Link>}
+                    <h1 className="text-3xl font-bold text-primary">{agencyIdFilter ? `${agencyName}'s Bookings` : 'Customer Bookings'}</h1>
+                    {agencyIdFilter ? 
+                        <Link to="/admin/bookings" className="text-sm text-primary hover:underline">Show Customer Bookings</Link>
+                        : <p className="text-sm text-gray-500">Agent bookings are visible via the 'Agencies' page.</p>
+                    }
                 </div>
                 <button onClick={handleRefresh} disabled={isRefreshing} className="group flex items-center bg-white text-primary font-semibold py-2 px-4 border border-primary-200 rounded-lg hover:bg-primary-50 transition duration-300 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
                     <RefreshIcon isRefreshing={isRefreshing} />

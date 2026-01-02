@@ -48,7 +48,7 @@ const mapLocalHotelToApi = (localHotel: Omit<Hotel, 'id'> | Hotel) => ({
     price_start: localHotel.priceStart,
     image_url: localHotel.imageUrl,
     description: localHotel.description,
-    amenities: JSON.stringify(localHotel.amenities),
+    amenities: localHotel.amenities,
     rooms: localHotel.rooms.map(r => {
         const roomPayload: any = {
             type: r.type,

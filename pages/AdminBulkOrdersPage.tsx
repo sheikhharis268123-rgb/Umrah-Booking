@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { useBulkOrder } from '../context/BulkOrderContext';
@@ -6,6 +5,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import { BulkOrder } from '../types';
 import { useBooking } from '../context/BookingContext';
 import { useToast } from '../context/ToastContext';
+import { useAgency } from '../context/AgencyContext';
 
 const RefreshIcon: React.FC<{ isRefreshing: boolean }> = ({ isRefreshing }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 mr-2 transition-transform duration-300 ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -18,6 +18,7 @@ const AdminBulkOrdersPage: React.FC = () => {
     const { convertPrice } = useCurrency();
     const { refreshData } = useBooking();
     const { addToast } = useToast();
+    const { updateAgentWallet } = useAgency();
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const sortedOrders = useMemo(() => {
@@ -37,7 +38,38 @@ const AdminBulkOrdersPage: React.FC = () => {
     };
 
     const handleStatusChange = (orderId: string, newStatus: BulkOrder['status']) => {
+        const orderToUpdate = bulkOrders.find(o => o.id === orderId);
+        if (!orderToUpdate) {
+            addToast(`Error: Could not find order ${orderId}.`, 'error');
+            return;
+        }
+
+        const previousStatus = orderToUpdate.status;
+        if (newStatus === previousStatus) return;
+
+        // If an order is rejected, refund the agent's wallet.
+        if (newStatus === 'Rejected' && previousStatus !== 'Rejected') {
+            updateAgentWallet(
+                orderToUpdate.agentId,
+                orderToUpdate.totalPrice,
+                'Credit',
+                `Refund for rejected bulk order: ${orderId}`
+            );
+            addToast(`Refund for ${convertPrice(orderToUpdate.totalPrice)} processed for order ${orderId}.`, 'success');
+        } 
+        // If a previously rejected order is re-approved, debit the wallet again.
+        else if (previousStatus === 'Rejected' && newStatus !== 'Rejected') {
+            updateAgentWallet(
+                orderToUpdate.agentId,
+                orderToUpdate.totalPrice,
+                'Debit',
+                `Re-charge for re-approved bulk order: ${orderId}`
+            );
+             addToast(`Wallet charged ${convertPrice(orderToUpdate.totalPrice)} for re-approved order ${orderId}.`, 'success');
+        }
+
         updateBulkOrderStatus(orderId, newStatus);
+        addToast(`Order ${orderId} status updated to ${newStatus}.`, 'info');
     };
     
     const getStatusColorClasses = (status: BulkOrder['status']) => {
