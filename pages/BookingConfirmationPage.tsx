@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo } from 'react';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
@@ -17,7 +16,12 @@ const BookingConfirmationPage: React.FC = () => {
     // Prioritize booking data passed directly via navigation state to avoid race conditions.
     // Fallback to searching the global bookings list.
     const newBookingFromState = (location.state as { booking: Booking })?.booking;
+    const userRole = (location.state as { userRole?: 'agent' | 'customer' })?.userRole;
     const currentBooking = useMemo(() => newBookingFromState || bookings.find(b => b.id === bookingId), [newBookingFromState, bookings, bookingId]);
+    
+    const homeLink = userRole === 'agent' ? '/agent' : '/';
+    const myBookingsLink = userRole === 'agent' ? '/agent/my-bookings' : '/my-bookings';
+
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -83,10 +87,10 @@ const BookingConfirmationPage: React.FC = () => {
                         </div>
 
                         <div className="mt-8 flex justify-center space-x-4">
-                             <Link to="/my-bookings" className="bg-secondary text-white font-bold py-3 px-6 rounded-lg hover:bg-opacity-90 transition duration-300">
+                             <Link to={myBookingsLink} className="bg-secondary text-white font-bold py-3 px-6 rounded-lg hover:bg-opacity-90 transition duration-300">
                                 View My Bookings
                             </Link>
-                            <Link to="/" className="bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-800 transition duration-300">
+                            <Link to={homeLink} className="bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-800 transition duration-300">
                                 Back to Home
                             </Link>
                         </div>

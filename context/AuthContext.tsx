@@ -1,8 +1,7 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Agent, Customer } from '../types';
-import { getApiUrl } from '../apiConfig';
+import { API_BASE_URL } from '../apiConfig';
 
 type UserRole = 'admin' | 'agent' | 'customer';
 
@@ -54,10 +53,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     try {
-        const response = await fetch(getApiUrl('login'), {
+        const response = await fetch(API_BASE_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: idOrEmail, password: pass, role })
+            body: JSON.stringify({ email: idOrEmail, password: pass, role, endpoint: 'login' })
         });
         const data = await response.json();
         if (!response.ok) {
@@ -80,10 +79,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signup = async (name: string, email: string, pass: string): Promise<boolean> => {
     try {
-        const response = await fetch(getApiUrl('signup'), {
+        const response = await fetch(API_BASE_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password: pass, role: 'customer' })
+            body: JSON.stringify({ name, email, password: pass, role: 'customer', endpoint: 'signup' })
         });
         const data = await response.json();
         if (!response.ok) {

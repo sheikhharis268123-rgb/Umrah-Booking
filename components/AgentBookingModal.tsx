@@ -48,7 +48,7 @@ const AgentBookingModal: React.FC<AgentBookingModalProps> = ({ isOpen, onClose, 
 
         setProcessing(true);
 
-        const newBooking: Omit<Booking, 'id' | 'status'> = {
+        const newBookingData: Omit<Booking, 'id' | 'status'> = {
             hotel: item.hotel,
             room: item.room,
             guestName,
@@ -63,13 +63,19 @@ const AgentBookingModal: React.FC<AgentBookingModalProps> = ({ isOpen, onClose, 
         };
         
         try {
-            const pendingBooking = await addBooking(newBooking, 'agent-assigned');
+            const pendingBooking = await addBooking(newBookingData, 'agent-assigned');
             // Agent-assigned bookings from confirmed bulk orders should be auto-confirmed.
-            await updateBookingStatusAndNotify(pendingBooking.id, 'Confirmed');
-            const confirmedBooking = { ...pendingBooking, status: 'Confirmed' as 'Confirmed' };
+            const confirmedBooking = await updateBookingStatusAndNotify(pendingBooking.id, 'Confirmed');
 
             onClose();
-            navigate(`/confirmation/${confirmedBooking.id}`, { state: { booking: confirmedBooking } });
+            
+            if (confirmedBooking) {
+                // Pass userRole in state to ensure confirmation page has correct links
+                navigate(`/confirmation/${confirmedBooking.id}`, { state: { booking: confirmedBooking, userRole: 'agent' } });
+            } else {
+                 throw new Error("Failed to confirm the booking. Please check the admin panel.");
+            }
+
         } catch (error: any) {
             addToast(`Error: ${error.message || 'Could not assign booking.'}`, 'error');
         } finally {

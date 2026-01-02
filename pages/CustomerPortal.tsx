@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -50,8 +49,9 @@ const CustomerPortal: React.FC = () => {
     }, [searchedHotels]);
 
     const maxDistanceFromResults = useMemo(() => {
-        if (!searchedHotels || searchedHotels.length === 0) return 2000;
-        return Math.ceil(Math.max(...searchedHotels.map(h => h.distanceToHaram)) / 100) * 100;
+        if (!searchedHotels || searchedHotels.length === 0) return 3000;
+        const maxCalc = Math.ceil(Math.max(...searchedHotels.map(h => h.distanceToHaram)) / 100) * 100;
+        return Math.min(maxCalc, 3000); // Cap max distance at 3000m
     }, [searchedHotels]);
 
     const [filters, setFilters] = useState<Filters>({ 
@@ -85,7 +85,8 @@ const CustomerPortal: React.FC = () => {
             setSearchedHotels(results);
             
             const newMaxPrice = results.length > 0 ? Math.ceil(Math.max(...results.map(h => h.priceStart)) / 10000) * 10000 : 500000;
-            const newMaxDistance = results.length > 0 ? Math.ceil(Math.max(...results.map(h => h.distanceToHaram)) / 100) * 100 : 2000;
+            const maxCalc = results.length > 0 ? Math.ceil(Math.max(...results.map(h => h.distanceToHaram)) / 100) * 100 : 3000;
+            const newMaxDistance = Math.min(maxCalc, 3000);
             setFilters({ sortBy: '', stars: 0, maxPrice: newMaxPrice, maxDistance: newMaxDistance });
             setIsLoading(false);
         }, 1000);

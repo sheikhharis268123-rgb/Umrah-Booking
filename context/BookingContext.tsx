@@ -20,7 +20,7 @@ interface BookingContextType {
     setBookingDetails: React.Dispatch<React.SetStateAction<BookingDetails>>;
     addBooking: (booking: Omit<Booking, 'id' | 'status'>, type?: 'customer' | 'agent-assigned') => Promise<Booking>;
     updateBooking: (updatedBooking: Booking) => void;
-    updateBookingStatusAndNotify: (bookingId: string, status: Booking['status']) => Promise<void>;
+    updateBookingStatusAndNotify: (bookingId: string, status: Booking['status']) => Promise<Booking | void>;
     deleteBookings: (bookingIds: string[]) => void;
     isBookingModalOpen: boolean;
     openBookingModal: (hotel: Hotel, room: Room) => void;
@@ -183,7 +183,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
     };
     
-    const updateBookingStatusAndNotify = async (bookingId: string, status: Booking['status']) => {
+    const updateBookingStatusAndNotify = async (bookingId: string, status: Booking['status']): Promise<Booking | void> => {
         const originalBookings = [...bookings];
         setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
 
@@ -200,15 +200,15 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             const updatedBooking = mapApiBookingToLocal(data);
             if (updatedBooking) {
                 setBookings(prev => prev.map(b => b.id === bookingId ? updatedBooking : b));
-            }
-
-            const booking = originalBookings.find(b => b.id === bookingId);
-            if (booking) {
-                if (status === 'Confirmed') {
-                    sendNotification({ to: booking.guestEmail, subject: `Booking Confirmed: ${booking.id}`, body: `...` });
-                } else if (status === 'Cancelled') {
-                    sendNotification({ to: booking.guestEmail, subject: `Booking Cancelled: ${booking.id}`, body: `...` });
+                 const booking = originalBookings.find(b => b.id === bookingId);
+                if (booking) {
+                    if (status === 'Confirmed') {
+                        sendNotification({ to: booking.guestEmail, subject: `Booking Confirmed: ${booking.id}`, body: `...` });
+                    } else if (status === 'Cancelled') {
+                        sendNotification({ to: booking.guestEmail, subject: `Booking Cancelled: ${booking.id}`, body: `...` });
+                    }
                 }
+                return updatedBooking; // Return the updated booking on success
             }
         } catch (error) {
             console.error("Failed to update booking status:", error);

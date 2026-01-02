@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -24,8 +23,9 @@ const AllHotelsPage: React.FC = () => {
     }, [hotels]);
 
     const maxPossibleDistance = useMemo(() => {
-        if (hotels.length === 0) return 2000;
-        return Math.ceil(Math.max(...hotels.map(h => h.distanceToHaram)) / 100) * 100;
+        if (hotels.length === 0) return 3000;
+        const maxCalc = Math.ceil(Math.max(...hotels.map(h => h.distanceToHaram)) / 100) * 100;
+        return Math.min(maxCalc, 3000); // Cap max distance at 3000m
     }, [hotels]);
 
     const [filters, setFilters] = useState<Filters>({ 
