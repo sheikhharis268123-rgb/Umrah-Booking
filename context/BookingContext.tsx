@@ -158,11 +158,25 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             }
 
             const savedBookingData = await response.json();
-            const newBooking = mapApiBookingToLocal(savedBookingData);
+            const mappedBooking = mapApiBookingToLocal(savedBookingData);
 
-            if (newBooking) {
-                setBookings(prev => [newBooking, ...prev]);
-                return newBooking;
+            if (mappedBooking) {
+                // Create a complete booking object to ensure confirmation page has all data.
+                // This uses the known-good data from the form (`bookingData`) and overwrites it with
+                // the server-generated ID and status from the API response (`mappedBooking`).
+                const completeBooking: Booking = {
+                    ...bookingData,
+                    ...mappedBooking,
+                };
+
+                // Preserve the agent-specific logic from the last fix.
+                if (type === 'agent-assigned') {
+                    completeBooking.status = 'Confirmed';
+                    completeBooking.bookingType = 'agent-assigned';
+                }
+                
+                setBookings(prev => [completeBooking, ...prev]);
+                return completeBooking; // Return the merged, complete object.
             } else {
                 throw new Error("Failed to map API response to local booking format. This may be due to outdated hotel data.");
             }
