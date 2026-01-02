@@ -55,7 +55,7 @@ const mapLocalHotelToApi = (localHotel: Omit<Hotel, 'id'> | Hotel) => ({
             purchase_price_per_night: r.purchasePricePerNight,
             agent_price_per_night: r.agentPricePerNight,
             customer_price_per_night: r.customerPricePerNight,
-            available: r.available,
+            available: r.available ? 1 : 0,
         };
         // Only add 'id' to payload if it's a valid persistent ID (numeric part of composite ID)
         if (String(r.id).includes('-')) {

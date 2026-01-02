@@ -18,7 +18,7 @@ interface AgentBookingModalProps {
 }
 
 const AgentBookingModal: React.FC<AgentBookingModalProps> = ({ isOpen, onClose, item }) => {
-    const { addBooking, updateBookingStatusAndNotify } = useBooking();
+    const { addBooking } = useBooking();
     const { agent } = useAgent();
     const { convertPrice } = useCurrency();
     const navigate = useNavigate();
@@ -63,18 +63,13 @@ const AgentBookingModal: React.FC<AgentBookingModalProps> = ({ isOpen, onClose, 
         };
         
         try {
-            const pendingBooking = await addBooking(newBookingData, 'agent-assigned');
-            // Agent-assigned bookings from confirmed bulk orders should be auto-confirmed.
-            const confirmedBooking = await updateBookingStatusAndNotify(pendingBooking.id, 'Confirmed');
+            // Create the booking directly with a 'Confirmed' status.
+            const confirmedBooking = await addBooking(newBookingData, 'agent-assigned', 'Confirmed');
 
             onClose();
             
-            if (confirmedBooking) {
-                // Pass userRole in state to ensure confirmation page has correct links
-                navigate(`/confirmation/${confirmedBooking.id}`, { state: { booking: confirmedBooking, userRole: 'agent' } });
-            } else {
-                 throw new Error("Failed to confirm the booking. Please check the admin panel.");
-            }
+            // Navigate directly on success. addBooking will throw an error on failure, which is caught below.
+            navigate(`/confirmation/${confirmedBooking.id}`, { state: { booking: confirmedBooking, userRole: 'agent' } });
 
         } catch (error: any) {
             addToast(`Error: ${error.message || 'Could not assign booking.'}`, 'error');

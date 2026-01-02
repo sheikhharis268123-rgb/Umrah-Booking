@@ -18,7 +18,7 @@ interface BookingContextType {
     bookings: Booking[];
     bookingDetails: BookingDetails;
     setBookingDetails: React.Dispatch<React.SetStateAction<BookingDetails>>;
-    addBooking: (booking: Omit<Booking, 'id' | 'status'>, type?: 'customer' | 'agent-assigned') => Promise<Booking>;
+    addBooking: (booking: Omit<Booking, 'id' | 'status'>, type?: 'customer' | 'agent-assigned', initialStatus?: Booking['status']) => Promise<Booking>;
     updateBooking: (updatedBooking: Booking) => void;
     updateBookingStatusAndNotify: (bookingId: string, status: Booking['status']) => Promise<Booking | void>;
     deleteBookings: (bookingIds: string[]) => void;
@@ -112,7 +112,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         fetchBookings();
     }, [fetchBookings]);
 
-    const addBooking = async (bookingData: Omit<Booking, 'id' | 'status'>, type: 'customer' | 'agent-assigned' = 'customer'): Promise<Booking> => {
+    const addBooking = async (bookingData: Omit<Booking, 'id' | 'status'>, type: 'customer' | 'agent-assigned' = 'customer', initialStatus: Booking['status'] = 'Pending'): Promise<Booking> => {
         const roomIdInt = parseInt(String(bookingData.room.id).split('-').pop() || '0');
 
         const apiPayload: any = {
@@ -128,6 +128,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             promo_code_applied: bookingData.promoCodeApplied || null,
             booking_type: type,
             customer_id: bookingData.customerId ? parseInt(bookingData.customerId, 10) : null,
+            status: initialStatus,
         };
         
         if (type === 'agent-assigned' && bookingData.agentDetails) {

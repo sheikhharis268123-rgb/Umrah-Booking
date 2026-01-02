@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Hotel, Room } from '../types';
 import { useHotels } from '../context/HotelContext';
@@ -18,9 +17,14 @@ const initialRoomData: Omit<Room, 'id'> = {
 };
 
 const HotelForm: React.FC<HotelFormProps> = ({ hotelToEdit, onClose }) => {
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
     const [formData, setFormData] = useState<Omit<Hotel, 'id'> | Hotel>(() => {
         return hotelToEdit || {
-            name: '', city: 'Makkah', address: '', availableFrom: '', availableTo: '',
+            name: '', city: 'Makkah', address: '', availableFrom: today, availableTo: tomorrowStr,
             distanceToHaram: 0, rating: 3, priceStart: 0,
             imageUrl: 'https://picsum.photos/seed/newhotel/800/600', description: '', amenities: [], rooms: []
         };
@@ -67,7 +71,7 @@ const HotelForm: React.FC<HotelFormProps> = ({ hotelToEdit, onClose }) => {
             const updatedRooms = formData.rooms.map(room => room.id === isEditingRoom.id ? { ...isEditingRoom, ...currentRoom } as Room : room);
             setFormData(prev => ({ ...prev, rooms: updatedRooms }));
         } else { // Add new room
-            const newRoom: Room = { ...currentRoom, id: `${formData.name}-room-${Date.now()}` };
+            const newRoom: Room = { ...currentRoom, id: `${formData.name || 'new-hotel'}-room-${Date.now()}` };
             setFormData(prev => ({ ...prev, rooms: [...prev.rooms, newRoom] }));
         }
         setShowRoomForm(false);
