@@ -147,39 +147,28 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
                 let errorMsg = `Server error: ${response.status} ${response.statusText}`;
                 try {
                     const errorData = await response.json();
-                    console.error("API Error Response (JSON):", errorData);
                     errorMsg = errorData.error || `Failed to save booking. Server returned: ${response.status}`;
                 } catch (e) {
-                    const errorText = await response.text();
-                    console.error("API Error Response (Non-JSON):", errorText);
-                    errorMsg = "An unexpected server error occurred. Please check the console for details.";
+                    errorMsg = "An unexpected server error occurred.";
                 }
                 throw new Error(errorMsg);
             }
 
             const savedBookingData = await response.json();
-            const mappedBooking = mapApiBookingToLocal(savedBookingData);
+            
+            // FIX: Forcefully set status to 'Confirmed' for agent-assigned bookings at creation time.
+            // This is more robust than post-creation modification and directly ensures the correct status and type,
+            // which solves both the confirmation page text and the admin panel visibility issues.
+            const newBooking: Booking = {
+                ...bookingData,
+                id: savedBookingData.id,
+                status: type === 'agent-assigned' ? 'Confirmed' : (savedBookingData.status || 'Pending'),
+                bookingType: type,
+            };
+            
+            setBookings(prev => [newBooking, ...prev]);
+            return newBooking;
 
-            if (mappedBooking) {
-                // Create a complete booking object to ensure confirmation page has all data.
-                // This uses the known-good data from the form (`bookingData`) and overwrites it with
-                // the server-generated ID and status from the API response (`mappedBooking`).
-                const completeBooking: Booking = {
-                    ...bookingData,
-                    ...mappedBooking,
-                };
-
-                // Preserve the agent-specific logic from the last fix.
-                if (type === 'agent-assigned') {
-                    completeBooking.status = 'Confirmed';
-                    completeBooking.bookingType = 'agent-assigned';
-                }
-                
-                setBookings(prev => [completeBooking, ...prev]);
-                return completeBooking; // Return the merged, complete object.
-            } else {
-                throw new Error("Failed to map API response to local booking format. This may be due to outdated hotel data.");
-            }
         } catch (error) {
             console.error("Error adding booking:", error);
             throw error;
