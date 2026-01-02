@@ -11,7 +11,13 @@ const AdminSettingsPage: React.FC = () => {
         cancellationFeePercentage, updateCancellationFee,
         dateChangeFeePercentage, updateDateChangeFee,
         websiteName, updateWebsiteName,
-        bannerImageUrl, updateBannerImageUrl
+        bannerImageUrl, updateBannerImageUrl,
+        contactEmail, updateContactEmail,
+        contactPhone, updateContactPhone,
+        contactAddress, updateContactAddress,
+        facebookUrl, updateFacebookUrl,
+        twitterUrl, updateTwitterUrl,
+        instagramUrl, updateInstagramUrl
     } = useSettings();
     const { announcement, setAnnouncement } = useInfo();
     const { addToast } = useToast();
@@ -24,6 +30,15 @@ const AdminSettingsPage: React.FC = () => {
     
     const [cancellationFee, setCancellationFee] = useState(cancellationFeePercentage);
     const [dateChangeFee, setDateChangeFee] = useState(dateChangeFeePercentage);
+    
+    // State for new contact & social fields
+    const [currentContactEmail, setCurrentContactEmail] = useState(contactEmail);
+    const [currentContactPhone, setCurrentContactPhone] = useState(contactPhone);
+    const [currentContactAddress, setCurrentContactAddress] = useState(contactAddress);
+    const [currentFacebookUrl, setCurrentFacebookUrl] = useState(facebookUrl);
+    const [currentTwitterUrl, setCurrentTwitterUrl] = useState(twitterUrl);
+    const [currentInstagramUrl, setCurrentInstagramUrl] = useState(instagramUrl);
+
 
     const inputStyle = "mt-1 block w-full p-2.5 bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-primary focus:border-primary transition duration-300";
 
@@ -66,6 +81,16 @@ const AdminSettingsPage: React.FC = () => {
         updateCancellationFee(cancellationFee);
         updateDateChangeFee(dateChangeFee);
         addToast('Financial settings have been updated.', 'success');
+    };
+    
+    const handleSaveContactAndSocials = () => {
+        updateContactEmail(currentContactEmail);
+        updateContactPhone(currentContactPhone);
+        updateContactAddress(currentContactAddress);
+        updateFacebookUrl(currentFacebookUrl);
+        updateTwitterUrl(currentTwitterUrl);
+        updateInstagramUrl(currentInstagramUrl);
+        addToast('Contact and social media settings updated!', 'success');
     };
 
     return (
@@ -115,6 +140,43 @@ const AdminSettingsPage: React.FC = () => {
                         </button>
                     </div>
                 </div>
+
+                {/* Contact & Socials */}
+                <div className="bg-white p-6 rounded-lg shadow-md lg:col-span-2">
+                    <h2 className="text-xl font-semibold text-primary mb-4">Contact & Social Media</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700">Contact Email</label>
+                            <input type="email" id="contactEmail" value={currentContactEmail} onChange={(e) => setCurrentContactEmail(e.target.value)} className={inputStyle} />
+                        </div>
+                        <div>
+                            <label htmlFor="contactPhone" className="block text-sm font-medium text-gray-700">Contact Phone</label>
+                            <input type="tel" id="contactPhone" value={currentContactPhone} onChange={(e) => setCurrentContactPhone(e.target.value)} className={inputStyle} />
+                        </div>
+                        <div className="md:col-span-2">
+                            <label htmlFor="contactAddress" className="block text-sm font-medium text-gray-700">Address</label>
+                            <input type="text" id="contactAddress" value={currentContactAddress} onChange={(e) => setCurrentContactAddress(e.target.value)} className={inputStyle} />
+                        </div>
+                        <div>
+                            <label htmlFor="facebookUrl" className="block text-sm font-medium text-gray-700">Facebook URL</label>
+                            <input type="url" id="facebookUrl" value={currentFacebookUrl} onChange={(e) => setCurrentFacebookUrl(e.target.value)} className={inputStyle} />
+                        </div>
+                        <div>
+                            <label htmlFor="twitterUrl" className="block text-sm font-medium text-gray-700">Twitter URL</label>
+                            <input type="url" id="twitterUrl" value={currentTwitterUrl} onChange={(e) => setCurrentTwitterUrl(e.target.value)} className={inputStyle} />
+                        </div>
+                        <div>
+                            <label htmlFor="instagramUrl" className="block text-sm font-medium text-gray-700">Instagram URL</label>
+                            <input type="url" id="instagramUrl" value={currentInstagramUrl} onChange={(e) => setCurrentInstagramUrl(e.target.value)} className={inputStyle} />
+                        </div>
+                    </div>
+                    <div className="flex justify-end mt-4">
+                        <button onClick={handleSaveContactAndSocials} className="bg-secondary text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition">
+                            Save Contact & Socials
+                        </button>
+                    </div>
+                </div>
+
 
                 {/* Financial Settings */}
                 <div className="bg-white p-6 rounded-lg shadow-md lg:col-span-2">

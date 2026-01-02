@@ -3,7 +3,7 @@ import { Hotel, Room, Booking } from '../types';
 import { BOOKINGS as STATIC_BOOKINGS } from '../constants';
 import { useNotification } from './NotificationProvider';
 import { useHotels } from './HotelContext';
-import { getApiUrl } from '../apiConfig';
+import { getApiUrl, API_BASE_URL } from '../apiConfig';
 import { useAgency } from './AgencyContext'; // Import useAgency
 
 interface BookingDetails {
@@ -127,7 +127,6 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
             payment_method: bookingData.paymentMethod,
             promo_code_applied: bookingData.promoCodeApplied || null,
             booking_type: type,
-            // FIX: Ensure customer_id is sent as an integer if it exists
             customer_id: bookingData.customerId ? parseInt(bookingData.customerId, 10) : null,
         };
         
@@ -137,10 +136,10 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
 
         try {
-            const response = await fetch(getApiUrl('bookings'), {
+            const response = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(apiPayload)
+                body: JSON.stringify({ ...apiPayload, endpoint: 'bookings' })
             });
 
             if (!response.ok) {
@@ -177,10 +176,10 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
 
         try {
-            const response = await fetch(getApiUrl('updateBookingStatus'), {
+             const response = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ booking_id: bookingId, status: status })
+                body: JSON.stringify({ endpoint: 'updateBookingStatus', booking_id: bookingId, status: status })
             });
 
             const data = await response.json();

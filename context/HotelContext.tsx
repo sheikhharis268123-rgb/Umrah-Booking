@@ -49,14 +49,23 @@ const mapLocalHotelToApi = (localHotel: Omit<Hotel, 'id'> | Hotel) => ({
     image_url: localHotel.imageUrl,
     description: localHotel.description,
     amenities: JSON.stringify(localHotel.amenities),
-    rooms: localHotel.rooms.map(r => ({
-        id: r.id,
-        type: r.type,
-        purchase_price_per_night: r.purchasePricePerNight,
-        agent_price_per_night: r.agentPricePerNight,
-        customer_price_per_night: r.customerPricePerNight,
-        available: r.available,
-    })),
+    rooms: localHotel.rooms.map(r => {
+        const roomPayload: any = {
+            type: r.type,
+            purchase_price_per_night: r.purchasePricePerNight,
+            agent_price_per_night: r.agentPricePerNight,
+            customer_price_per_night: r.customerPricePerNight,
+            available: r.available,
+        };
+        // Only add 'id' to payload if it's a valid persistent ID (numeric part of composite ID)
+        if (String(r.id).includes('-')) {
+            const potentialId = String(r.id).split('-')[1];
+            if (!isNaN(parseInt(potentialId, 10)) && String(parseInt(potentialId, 10)) === potentialId) {
+                roomPayload.id = parseInt(potentialId, 10);
+            }
+        }
+        return roomPayload;
+    }),
     ...('id' in localHotel && { id: localHotel.id })
 });
 
@@ -115,7 +124,7 @@ export const HotelProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 id: updatedHotel.id
             };
             const response = await fetch(API_BASE_URL, {
-                method: 'PUT',
+                method: 'POST', // Using POST for updates as well, backend likely handles it
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(apiPayload),
             });
