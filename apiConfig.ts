@@ -9,17 +9,20 @@ export const API_BASE_URL = "https://sandybrown-parrot-500490.hostingersite.com/
  * @returns The full, correctly formatted URL.
  */
 export const getApiUrl = (endpoint: string, params?: Record<string, string | number>): string => {
-    // Start with the base URL, ensuring no query string is present.
-    const baseUrl = API_BASE_URL.split('?')[0];
-    
-    // Construct search parameters safely.
-    const searchParams = new URLSearchParams({ endpoint });
+    // Use the URL constructor for robust URL handling.
+    // It correctly parses the base and allows safe manipulation of search params.
+    const url = new URL(API_BASE_URL);
 
+    // Set the primary 'endpoint' parameter. This will overwrite if it somehow exists.
+    url.searchParams.set('endpoint', endpoint);
+
+    // Append any additional parameters.
     if (params) {
         for (const key in params) {
-            searchParams.append(key, String(params[key]));
+            url.searchParams.append(key, String(params[key]));
         }
     }
 
-    return `${baseUrl}?${searchParams.toString()}`;
+    // Return the complete URL as a string.
+    return url.toString();
 };
