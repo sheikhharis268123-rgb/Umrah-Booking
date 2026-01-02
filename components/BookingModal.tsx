@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 const BookingModal: React.FC = () => {
-    const { isBookingModalOpen, closeBookingModal, bookingDetails, setBookingDetails, addBooking, updateBookingStatusAndNotify } = useBooking();
+    const { isBookingModalOpen, closeBookingModal, bookingDetails, setBookingDetails, addBooking } = useBooking();
     const { promoCodes } = useSettings();
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -94,16 +94,13 @@ const BookingModal: React.FC = () => {
                 totalPrice: bookingDetails.totalPrice, paymentMethod: 'Online', promoCodeApplied: appliedPromo?.code,
                 customerId: user && user.role === 'customer' ? user.id : undefined,
             };
-            const pendingBooking = await addBooking(newBookingData, 'customer');
-            
-            // Auto-confirm customer booking to simulate successful payment and immediate confirmation
-            await updateBookingStatusAndNotify(pendingBooking.id, 'Confirmed');
-            const confirmedBooking = { ...pendingBooking, status: 'Confirmed' as 'Confirmed' };
+            const newBooking = await addBooking(newBookingData, 'customer');
             
             setContactNumber(''); setPromoCode(''); setAppliedPromo(null); setPromoMessage('');
             closeBookingModal();
             
-            navigate(`/confirmation/${confirmedBooking.id}`, { state: { booking: confirmedBooking } });
+            // Navigate with the new booking which will have a "Pending" status by default
+            navigate(`/confirmation/${newBooking.id}`, { state: { booking: newBooking } });
 
         } catch (error: any) {
             addToast(`Error: ${error.message || 'Could not confirm booking.'}`, 'error');

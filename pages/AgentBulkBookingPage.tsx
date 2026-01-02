@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { useHotels } from '../context/HotelContext';
 import { Hotel, Room, BulkOrderItem, BulkOrder } from '../types';
@@ -18,19 +18,29 @@ const AgentBulkBookingPage: React.FC = () => {
     const { addToast } = useToast();
 
     // Form state
-    const [selectedHotelId, setSelectedHotelId] = useState<number>(hotels[0]?.id || 0);
-    const [selectedRoomId, setSelectedRoomId] = useState<string>(hotels[0]?.rooms[0]?.id || '');
+    const [selectedHotelId, setSelectedHotelId] = useState<number>(0);
+    const [selectedRoomId, setSelectedRoomId] = useState<string>('');
     const [quantity, setQuantity] = useState<number>(1);
     const today = new Date().toISOString().split('T')[0];
     const [checkInDate, setCheckInDate] = useState(today);
     const [checkOutDate, setCheckOutDate] = useState(() => {
         const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); return tomorrow.toISOString().split('T')[0];
     });
+    
+    // Set initial defaults once hotels are loaded
+    useEffect(() => {
+        if (hotels.length > 0 && selectedHotelId === 0) {
+            const firstHotel = hotels[0];
+            setSelectedHotelId(firstHotel.id);
+            if (firstHotel.rooms.length > 0) {
+                setSelectedRoomId(firstHotel.rooms[0].id);
+            }
+        }
+    }, [hotels, selectedHotelId]);
 
-    // Derived state
-    const [selectedHotel, setSelectedHotel] = useState<Hotel | undefined>(hotels[0]);
-    const [selectedRoom, setSelectedRoom] = useState<Room | undefined>(hotels[0]?.rooms[0]);
-
+    // Derived state for better reliability
+    const selectedHotel = useMemo(() => hotels.find(h => h.id === selectedHotelId), [hotels, selectedHotelId]);
+    
     // Order state
     const [currentOrderItems, setCurrentOrderItems] = useState<BulkOrderItem[]>([]);
     const totalCurrentOrderPrice = currentOrderItems.reduce((acc, item) => acc + item.subtotal, 0);
@@ -40,16 +50,6 @@ const AgentBulkBookingPage: React.FC = () => {
     const [bookingItem, setBookingItem] = useState<BulkOrderItem | null>(null);
 
     const inputStyle = "w-full p-2.5 bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-primary focus:border-primary transition duration-300";
-
-    useEffect(() => {
-        const hotel = hotels.find(h => h.id === selectedHotelId);
-        setSelectedHotel(hotel);
-        if (hotel) {
-            const room = hotel.rooms.find(r => r.id === selectedRoomId) || hotel.rooms[0];
-            setSelectedRoom(room);
-            setSelectedRoomId(room?.id || '');
-        }
-    }, [selectedHotelId, selectedRoomId, hotels]);
     
     if (agent && agent.status === 'Inactive') {
         return (
@@ -61,8 +61,21 @@ const AgentBulkBookingPage: React.FC = () => {
             </DashboardLayout>
         );
     }
+    
+    const handleHotelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newHotelId = Number(e.target.value);
+        setSelectedHotelId(newHotelId);
+        const newHotel = hotels.find(h => h.id === newHotelId);
+        if (newHotel?.rooms.length) {
+            setSelectedRoomId(newHotel.rooms[0].id);
+        } else {
+            setSelectedRoomId('');
+        }
+    };
+
 
     const handleAddToOrder = () => {
+        const selectedRoom = selectedHotel?.rooms.find(r => r.id === selectedRoomId);
         if (!selectedHotel || !selectedRoom || quantity < 1) {
             addToast("Please select a valid hotel, room, and quantity.", 'error'); return;
         }
@@ -128,13 +141,13 @@ const AgentBulkBookingPage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 items-end my-4">
                     <div className="flex flex-col lg:col-span-2">
                         <label className="text-sm font-semibold text-gray-600 mb-1">Hotel</label>
-                        <select value={selectedHotelId} onChange={e => setSelectedHotelId(Number(e.target.value))} className={inputStyle}>
+                        <select value={selectedHotelId} onChange={handleHotelChange} className={inputStyle} disabled={hotels.length === 0}>
                             {hotels.map(hotel => <option key={hotel.id} value={hotel.id}>{hotel.name}</option>)}
                         </select>
                     </div>
                     <div className="flex flex-col">
                         <label className="text-sm font-semibold text-gray-600 mb-1">Room</label>
-                        <select value={selectedRoomId} onChange={e => setSelectedRoomId(e.target.value)} className={inputStyle}>
+                        <select value={selectedRoomId} onChange={e => setSelectedRoomId(e.target.value)} className={inputStyle} disabled={!selectedHotel}>
                             {selectedHotel?.rooms.map(room => <option key={room.id} value={room.id}>{room.type}</option>)}
                         </select>
                     </div>
