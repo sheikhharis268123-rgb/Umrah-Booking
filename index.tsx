@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -22,12 +24,9 @@ if (!rootElement) {
 }
 
 const root = ReactDOM.createRoot(rootElement);
-
-// The order of Providers is important. It should be from least dependent to most dependent.
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      {/* Level 0: Providers with no internal dependencies on other contexts */}
       <ToastProvider>
         <NotificationProvider>
           <InfoProvider>
@@ -36,25 +35,17 @@ root.render(
                 <AuthProvider>
                   <HotelProvider>
                     <InvoiceProvider>
-                      <CustomerProvider>
-                        <BulkOrderProvider>
-                        
-                          {/* Level 1: Providers that depend on the ones above */}
-                          <AgencyProvider> {/* Depends on InvoiceProvider */}
-                            
-                            {/* Level 2: Providers that depend on Level 1 */}
-                            <AgentProvider>  {/* Depends on AuthProvider, AgencyProvider */}
-                              <BookingProvider> {/* Depends on NotificationProvider, HotelProvider, AgencyProvider */}
-                                
-                                {/* Finally, the App which uses all contexts */}
+                      <AgencyProvider>
+                        <CustomerProvider>
+                          <BookingProvider>
+                            <AgentProvider>
+                              <BulkOrderProvider>
                                 <App />
-
-                              </BookingProvider>
+                              </BulkOrderProvider>
                             </AgentProvider>
-                          </AgencyProvider>
-
-                        </BulkOrderProvider>
-                      </CustomerProvider>
+                          </BookingProvider>
+                        </CustomerProvider>
+                      </AgencyProvider>
                     </InvoiceProvider>
                   </HotelProvider>
                 </AuthProvider>
