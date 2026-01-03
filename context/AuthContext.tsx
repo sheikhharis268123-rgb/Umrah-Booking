@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, ReactNode, useEffect } from
 // Fix: Use useNavigate instead of useHistory for react-router-dom v6 compatibility.
 import { useNavigate } from 'react-router-dom';
 import { Agent, Customer } from '../types';
-import { API_BASE_URL } from '../apiConfig';
+import { getApiUrl } from '../apiConfig';
 
 type UserRole = 'admin' | 'agent' | 'customer';
 
@@ -55,10 +55,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     try {
-        const response = await fetch(API_BASE_URL, {
+        const response = await fetch(getApiUrl('login'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: idOrEmail, password: pass, role, endpoint: 'login' })
+            body: JSON.stringify({ email: idOrEmail, password: pass, role })
         });
         const data = await response.json();
         if (!response.ok) {
@@ -81,10 +81,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signup = async (name: string, email: string, pass: string): Promise<boolean> => {
     try {
-        const response = await fetch(API_BASE_URL, {
+        const response = await fetch(getApiUrl('signup'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password: pass, role: 'customer', endpoint: 'signup' })
+            body: JSON.stringify({ name, email, password: pass, role: 'customer' })
         });
         const data = await response.json();
         if (!response.ok) {

@@ -3,7 +3,7 @@ import { Hotel, Room, Booking } from '../types';
 import { BOOKINGS as STATIC_BOOKINGS } from '../constants';
 import { useNotification } from './NotificationProvider';
 import { useHotels } from './HotelContext';
-import { getApiUrl, API_BASE_URL } from '../apiConfig';
+import { getApiUrl } from '../apiConfig';
 import { useAgency } from './AgencyContext'; // Import useAgency
 
 interface BookingDetails {
@@ -137,10 +137,10 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
 
         try {
-            const response = await fetch(API_BASE_URL, {
+            const response = await fetch(getApiUrl('bookings'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...apiPayload, endpoint: 'bookings' })
+                body: JSON.stringify(apiPayload)
             });
 
             if (!response.ok) {
@@ -186,10 +186,10 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         setBookings(prev => prev.map(b => (b.id === bookingId ? updatedBooking : b)));
 
         try {
-            const response = await fetch(API_BASE_URL, {
+            const response = await fetch(getApiUrl('updateBookingStatus'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ endpoint: 'updateBookingStatus', booking_id: bookingId, status: status })
+                body: JSON.stringify({ booking_id: bookingId, status: status })
             });
 
             if (!response.ok) {

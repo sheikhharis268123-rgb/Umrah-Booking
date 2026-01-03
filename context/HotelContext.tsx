@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { Hotel } from '../types';
 import { HOTELS } from '../constants'; // Kept for fallback on API error
-import { getApiUrl, API_BASE_URL } from '../apiConfig';
+import { getApiUrl } from '../apiConfig';
 
 interface HotelContextType {
     hotels: Hotel[];
@@ -97,11 +97,8 @@ export const HotelProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const addHotel = async (hotelData: Omit<Hotel, 'id'>) => {
         try {
-            const apiPayload = {
-                ...mapLocalHotelToApi(hotelData),
-                endpoint: 'hotels'
-            };
-            const response = await fetch(API_BASE_URL, {
+            const apiPayload = mapLocalHotelToApi(hotelData);
+            const response = await fetch(getApiUrl('hotels'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(apiPayload),
@@ -120,10 +117,9 @@ export const HotelProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         try {
             const apiPayload = {
                 ...mapLocalHotelToApi(updatedHotel),
-                endpoint: 'hotels',
                 id: updatedHotel.id
             };
-            const response = await fetch(API_BASE_URL, {
+            const response = await fetch(getApiUrl('hotels'), {
                 method: 'POST', // Using POST for updates as well, backend likely handles it
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(apiPayload),
