@@ -20,7 +20,7 @@ interface BookingContextType {
     setBookingDetails: React.Dispatch<React.SetStateAction<BookingDetails>>;
     addBooking: (booking: Omit<Booking, 'id' | 'status'>, type?: 'customer' | 'agent-assigned', initialStatus?: Booking['status']) => Promise<Booking>;
     updateBooking: (updatedBooking: Booking) => void;
-    updateBookingStatusAndNotify: (bookingId: string, status: Booking['status']) => Promise<Booking | void>;
+    updateBookingStatusAndNotify: (bookingId: string, status: Booking['status']) => Promise<void>;
     deleteBookings: (bookingIds: string[]) => void;
     isBookingModalOpen: boolean;
     openBookingModal: (hotel: Hotel, room: Room) => void;
@@ -156,9 +156,6 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
             const savedBookingData = await response.json();
             
-            // FIX: Forcefully set status to 'Confirmed' for agent-assigned bookings at creation time.
-            // This is more robust than post-creation modification and directly ensures the correct status and type,
-            // which solves both the confirmation page text and the admin panel visibility issues.
             const newBooking: Booking = {
                 ...bookingData,
                 id: savedBookingData.id,
@@ -175,37 +172,43 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
     };
     
-    const updateBookingStatusAndNotify = async (bookingId: string, status: Booking['status']): Promise<Booking | void> => {
+    const updateBookingStatusAndNotify = async (bookingId: string, status: Booking['status']): Promise<void> => {
         const originalBookings = [...bookings];
-        setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
+        const bookingToUpdate = originalBookings.find(b => b.id === bookingId);
+
+        if (!bookingToUpdate) {
+            throw new Error(`Booking with ID ${bookingId} not found for update.`);
+        }
+
+        const updatedBooking = { ...bookingToUpdate, status };
+
+        // Optimistic update: Update the UI immediately.
+        setBookings(prev => prev.map(b => (b.id === bookingId ? updatedBooking : b)));
 
         try {
-             const response = await fetch(API_BASE_URL, {
+            const response = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ endpoint: 'updateBookingStatus', booking_id: bookingId, status: status })
             });
 
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Failed to update status');
-
-            const updatedBooking = mapApiBookingToLocal(data);
-            if (updatedBooking) {
-                setBookings(prev => prev.map(b => b.id === bookingId ? updatedBooking : b));
-                 const booking = originalBookings.find(b => b.id === bookingId);
-                if (booking) {
-                    if (status === 'Confirmed') {
-                        sendNotification({ to: booking.guestEmail, subject: `Booking Confirmed: ${booking.id}`, body: `...` });
-                    } else if (status === 'Cancelled') {
-                        sendNotification({ to: booking.guestEmail, subject: `Booking Cancelled: ${booking.id}`, body: `...` });
-                    }
-                }
-                return updatedBooking; // Return the updated booking on success
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Failed to update status on the server.' }));
+                throw new Error(errorData.error);
             }
+
+            // SUCCESS: The optimistic update is confirmed. Send notification.
+            if (status === 'Confirmed') {
+                sendNotification({ to: bookingToUpdate.guestEmail, subject: `Booking Confirmed: ${bookingToUpdate.id}`, body: `Your booking is confirmed.` });
+            } else if (status === 'Cancelled') {
+                sendNotification({ to: bookingToUpdate.guestEmail, subject: `Booking Cancelled: ${bookingToUpdate.id}`, body: `Your booking has been cancelled.` });
+            }
+
         } catch (error) {
             console.error("Failed to update booking status:", error);
+            // Rollback on error: Revert the UI to its original state.
             setBookings(originalBookings);
-            throw error;
+            throw error; // Re-throw the error to be caught by the calling component.
         }
     };
     
